@@ -1,15 +1,8 @@
 <div align="center">
 
-```
-  ██████╗  ██████╗ ██╗   ██╗███╗   ██╗██████╗ 
-  ██╔══██╗██╔═══██╗██║   ██║████╗  ██║██╔══██╗
-  ██████╔╝██║   ██║██║   ██║██╔██╗ ██║██║  ██║
-  ██╔══██╗██║   ██║██║   ██║██║╚██╗██║██║  ██║
-  ██████╔╝╚██████╔╝╚██████╔╝██║ ╚████║██████╔╝
-  ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚═════╝ 
-```
+<img src="assets/banner.svg" alt="BOUND // The Programmable Spend Vault & Financial Rails for Autonomous AI Agents" width="100%" />
 
-### The Programmable Spend Vault & Financial Rails for Autonomous AI Agents
+<br/><br/>
 
 [![Go Version](https://img.shields.io/badge/Go-1.27+-7D56F4.svg?style=for-the-badge&logo=go)](https://golang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-04B575.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
@@ -20,13 +13,13 @@
 
 **Eliminate the anxiety of letting autonomous LLMs touch money, APIs, and execution rails.**
 
-[Quick Start](#quick-start) • [The Problem](#the-problem) • [Architecture](#architecture) • [CLI Commands](#cli-commands) • [SDK Integration](#sdk-integration)
+[Quick Start](#quick-start) • [The Problem](#the-problem) • [Architecture](#architecture) • [CLI Reference](#cli-reference) • [SDK Integration](#sdk-integration)
 
 <br/>
 
 ```text
 ╭──────────────────────────────────────────────────────────╮
-│ 📊 BOUND GOVERNANCE TELEMETRY & VAULT STATUS            │
+│ BOUND GOVERNANCE TELEMETRY & VAULT STATUS                │
 ├──────────────────────────────────────────────────────────┤
 │  Total Spent       : $1.4230                             │
 │  Remaining Budget  : $23.5770                            │
@@ -34,7 +27,7 @@
 │  Daily Limit       : $10.00                              │
 │  Hourly Velocity   : $5.00                               │
 │  Total Transactions: 14                                  │
-│  Circuit Breaker   : 🟢 ACTIVE                           │
+│  Circuit Breaker   : ACTIVE                              │
 ╰──────────────────────────────────────────────────────────╯
 ```
 
@@ -42,7 +35,7 @@
 
 ---
 
-## 🛑 The Problem
+## The Problem
 
 Autonomous AI agents (Claude Code, AutoGPT, CrewAI, LangChain, custom loops) are powerful, but they operate with **unrestricted, blank-check authority**:
 
@@ -52,19 +45,19 @@ Autonomous AI agents (Claude Code, AutoGPT, CrewAI, LangChain, custom loops) are
 
 ---
 
-## 🛡️ What is BOUND?
+## Overview
 
 **Bound** is a blazing-fast, single-binary proxy daemon written in pure Go. It sits between your AI agent and the outside world, acting as an **intelligent financial governor and circuit breaker**:
 
-- 🔒 **Spend Vaults**: Strict lifetime, daily, and hourly velocity limits per agent.
-- ⚡ **Circuit Breakers**: Detects runaway loops (>5 identical tool calls in 30s) and cuts connection instantly.
-- 🛑 **Human-in-the-Loop Escrow**: Automatically pauses the agent and sends an approval request (Telegram, Slack, Discord) for transactions exceeding a threshold (e.g. > $15).
-- 📜 **Cryptographic Ledger**: Tamper-proof JSONL audit trail recording every prompt, tool call, dollar spent, and latency telemetry.
-- 🏎️ **Sub-2ms Latency**: Zero garbage collection lag. Written in pure Go with zero runtime dependencies.
+- **Spend Vaults**: Strict lifetime, daily, and hourly velocity limits per agent.
+- **Circuit Breakers**: Detects runaway loops (>5 identical tool calls in 30s) and cuts connection instantly.
+- **Human-in-the-Loop Escrow**: Automatically pauses the agent and sends an approval request (Telegram, Slack, Discord) for transactions exceeding a threshold (e.g. > $15).
+- **Cryptographic Ledger**: Tamper-proof JSONL audit trail recording every prompt, tool call, dollar spent, and latency telemetry.
+- **Sub-2ms Latency**: Zero garbage collection lag. Written in pure Go with zero runtime dependencies.
 
 ---
 
-## 🏛️ Architecture
+## Architecture
 
 ```
                                       BOUND GOVERNANCE PROXY
@@ -85,7 +78,7 @@ Autonomous AI agents (Claude Code, AutoGPT, CrewAI, LangChain, custom loops) are
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -114,7 +107,7 @@ bound proxy --port :8443 --budget 50.00 --hourly 10.00 --upstream https://api.op
 
 ---
 
-## 🎮 CLI Commands
+## CLI Reference
 
 | Command | Action |
 |---|---|
@@ -127,7 +120,7 @@ bound proxy --port :8443 --budget 50.00 --hourly 10.00 --upstream https://api.op
 
 ---
 
-## 💻 SDK Integration
+## SDK Integration
 
 ### Python
 ```python
@@ -164,6 +157,6 @@ func main() {
 
 ---
 
-## 📜 License
+## License
 
 MIT License © 2026 404kernel
