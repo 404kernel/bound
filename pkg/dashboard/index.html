@@ -3,27 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BOUND // Control Dashboard</title>
+  <title>Bound Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #090B0E;
-      --card-bg: rgba(17, 21, 28, 0.7);
-      --card-border: rgba(255, 255, 255, 0.07);
-      --card-hover: rgba(255, 255, 255, 0.1);
-      --text: #F1F5F9;
-      --text-muted: #8E9BAE;
-      --text-dim: #526075;
+      --bg: #0C0E12;
+      --surface-1: #14171E;
+      --surface-2: #1B2028;
+      --surface-3: #232834;
+      --border-subtle: #222733;
+      --border-strong: #2D3444;
+      --text-main: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --text-dim: #6B7280;
       --emerald: #10B981;
-      --emerald-glow: rgba(16, 185, 129, 0.15);
+      --emerald-bg: #064E3B;
+      --emerald-border: #047857;
       --crimson: #EF4444;
-      --crimson-glow: rgba(239, 68, 68, 0.2);
+      --crimson-bg: #450A0A;
+      --crimson-border: #B91C1C;
       --amber: #F59E0B;
       --indigo: #6366F1;
-      --mono: 'JetBrains Mono', monospace;
-      --sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --mono: 'JetBrains Mono', SFMono-Regular, Consolas, monospace;
     }
 
     * {
@@ -34,512 +38,555 @@
 
     body {
       background-color: var(--bg);
-      color: var(--text);
+      color: var(--text-main);
       font-family: var(--sans);
-      min-height: 100vh;
+      font-size: 14px;
       line-height: 1.5;
-      background-image: 
-        radial-gradient(ellipse at 50% -20%, rgba(99, 102, 241, 0.08), transparent 70%),
-        radial-gradient(circle at 100% 50%, rgba(16, 185, 129, 0.03), transparent 50%);
-      background-attachment: fixed;
+      -webkit-font-smoothing: antialiased;
     }
 
-    .container {
-      max-width: 1320px;
-      margin: 0 auto;
-      padding: 32px 24px 64px;
-    }
-
-    /* Header */
-    header {
+    /* Top Navigation Bar */
+    .topbar {
+      height: 56px;
+      background: var(--surface-1);
+      border-bottom: 1px solid var(--border-subtle);
       display: flex;
+      align-items: center;
       justify-content: space-between;
-      align-items: center;
-      padding-bottom: 28px;
-      border-bottom: 1px solid var(--card-border);
-      margin-bottom: 32px;
+      padding: 0 24px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .brand-mark {
-      width: 40px;
-      height: 40px;
-      background: #000000;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--sans);
-      font-weight: 800;
-      font-size: 22px;
-      color: #FFFFFF;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    }
-
-    .brand-title {
-      font-size: 19px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .badge-live {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      font-family: var(--mono);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: rgba(16, 185, 129, 0.1);
-      color: var(--emerald);
-      border: 1px solid rgba(16, 185, 129, 0.25);
-    }
-
-    .badge-live::before {
-      content: "";
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--emerald);
-      box-shadow: 0 0 8px var(--emerald);
-      animation: pulse 2s infinite;
-    }
-
-    .badge-tripped {
-      background: rgba(239, 68, 68, 0.1);
-      color: var(--crimson);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-
-    .badge-tripped::before {
-      background: var(--crimson);
-      box-shadow: 0 0 8px var(--crimson);
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.9); }
-    }
-
-    .controls {
+    .brand-wrap {
       display: flex;
       align-items: center;
       gap: 12px;
     }
 
-    .btn {
-      appearance: none;
-      border: none;
-      outline: none;
-      cursor: pointer;
+    .brand-logo {
+      width: 28px;
+      height: 28px;
+      background: #000000;
+      border: 1px solid #374151;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-family: var(--sans);
+      font-weight: 700;
+      font-size: 16px;
+      color: #FFFFFF;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .brand-title {
       font-weight: 600;
-      font-size: 13px;
-      padding: 9px 16px;
-      border-radius: 8px;
-      transition: all 0.15s ease;
-      display: inline-flex;
+      font-size: 14px;
+      color: var(--text-main);
+      display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--card-border);
-      color: var(--text);
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: #064E3B;
+      color: #34D399;
+      border: 1px solid #047857;
     }
 
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: var(--card-hover);
+    .status-indicator.tripped {
+      background: #7F1D1D;
+      color: #F87171;
+      border-color: #B91C1C;
     }
 
-    .btn-kill {
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #FCA5A5;
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .btn-kill:hover {
-      background: rgba(239, 68, 68, 0.25);
-      border-color: rgba(239, 68, 68, 0.5);
+    /* Tactile Neomorphic Buttons */
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border-strong);
+      background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface-1) 100%);
+      color: var(--text-main);
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      transition: background 0.1s ease, border-color 0.1s ease, transform 0.05s ease;
     }
 
-    .btn-kill.active {
-      background: var(--crimson);
+    .btn:hover {
+      background: var(--surface-2);
+      border-color: #4B5563;
+    }
+
+    .btn:active {
+      background: #11141A;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+      transform: translateY(1px);
+    }
+
+    .btn-danger {
+      background: linear-gradient(180deg, #991B1B 0%, #7F1D1D 100%);
+      border-color: #B91C1C;
       color: #FFFFFF;
-      box-shadow: 0 0 20px var(--crimson-glow);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
     }
 
-    /* Grid */
-    .metrics-grid {
+    .btn-danger:hover {
+      background: #991B1B;
+      border-color: #DC2626;
+    }
+
+    .btn-danger.active {
+      background: #DC2626;
+      border-color: #EF4444;
+    }
+
+    .btn-primary {
+      background: linear-gradient(180deg, #2563EB 0%, #1D4ED8 100%);
+      border-color: #3B82F6;
+      color: #FFFFFF;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-primary:hover {
+      background: #2563EB;
+      border-color: #60A5FA;
+    }
+
+    /* Container */
+    .content-area {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    /* Sub-header banner */
+    .context-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .context-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .context-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-family: var(--mono);
+      margin-top: 2px;
+    }
+
+    /* Alert Banner */
+    .alert-strip {
+      background: #450A0A;
+      border: 1px solid #7F1D1D;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      color: #FCA5A5;
+      font-size: 13px;
+    }
+
+    .alert-strip.visible {
+      display: flex;
+    }
+
+    /* Neomorphic Stat Cards Grid */
+    .metrics-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 18px;
-      margin-bottom: 32px;
+      gap: 16px;
+      margin-bottom: 24px;
     }
 
-    @media (max-width: 992px) {
-      .metrics-grid {
+    @media (max-width: 1024px) {
+      .metrics-row {
         grid-template-columns: repeat(2, 1fr);
       }
     }
 
-    @media (max-width: 576px) {
-      .metrics-grid {
+    @media (max-width: 600px) {
+      .metrics-row {
         grid-template-columns: 1fr;
       }
     }
 
-    .card {
-      background: var(--card-bg);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
-      padding: 22px;
-      position: relative;
-      overflow: hidden;
-      transition: border-color 0.2s ease, transform 0.2s ease;
+    .metric-card {
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 16px 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
 
-    .card:hover {
-      border-color: var(--card-hover);
-    }
-
-    .card-label {
-      font-size: 12px;
-      text-transform: uppercase;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-      margin-bottom: 8px;
+    .metric-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 6px;
     }
 
-    .card-val {
-      font-family: var(--mono);
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: -0.03em;
-    }
-
-    .card-sub {
+    .metric-title {
       font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .metric-badge {
+      font-family: var(--mono);
+      font-size: 11px;
       color: var(--text-dim);
-      margin-top: 6px;
+    }
+
+    .metric-value {
+      font-family: var(--mono);
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+    }
+
+    .metric-foot {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 4px;
       font-family: var(--mono);
     }
 
-    .progress-bar {
+    .track {
       width: 100%;
       height: 4px;
-      background: rgba(255, 255, 255, 0.08);
+      background: var(--surface-3);
       border-radius: 2px;
-      margin-top: 14px;
+      margin-top: 10px;
       overflow: hidden;
     }
 
-    .progress-fill {
+    .fill {
       height: 100%;
       background: var(--emerald);
       border-radius: 2px;
       transition: width 0.3s ease;
     }
 
-    .progress-fill.danger {
+    .fill.danger {
       background: var(--crimson);
     }
 
-    /* Main Sections */
-    .dashboard-layout {
+    /* Main Grid */
+    .grid-layout {
       display: grid;
       grid-template-columns: 2fr 1fr;
-      gap: 24px;
+      gap: 20px;
     }
 
-    @media (max-width: 1024px) {
-      .dashboard-layout {
+    @media (max-width: 992px) {
+      .grid-layout {
         grid-template-columns: 1fr;
       }
     }
 
+    /* Native Solid Panels */
     .panel {
-      background: var(--card-bg);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
-      padding: 24px;
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
 
     .panel-header {
+      padding: 14px 18px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border-subtle);
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      justify-content: space-between;
     }
 
     .panel-title {
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: -0.01em;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
-    .pill-counter {
+    .count-tag {
       font-size: 11px;
       font-family: var(--mono);
-      font-weight: 600;
+      background: var(--surface-3);
       color: var(--text-muted);
-      background: rgba(255, 255, 255, 0.06);
-      padding: 2px 8px;
-      border-radius: 6px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border-strong);
     }
 
-    /* Table */
-    .table-container {
+    /* Native Data Table */
+    .table-wrap {
       overflow-x: auto;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
+      font-size: 12px;
       text-align: left;
-      font-size: 13px;
     }
 
-    th {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+    thead th {
+      background: #11141A;
       color: var(--text-dim);
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--card-border);
-    }
-
-    td {
-      padding: 12px 14px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-      font-family: var(--mono);
-      color: var(--text-muted);
-    }
-
-    tr:hover td {
-      background: rgba(255, 255, 255, 0.02);
-      color: var(--text);
-    }
-
-    .status-tag {
-      display: inline-block;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 3px 6px;
-      border-radius: 4px;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
       letter-spacing: 0.04em;
+      padding: 9px 16px;
+      border-bottom: 1px solid var(--border-subtle);
     }
 
-    .status-tag.allowed {
-      background: rgba(16, 185, 129, 0.12);
-      color: var(--emerald);
-      border: 1px solid rgba(16, 185, 129, 0.25);
+    tbody td {
+      padding: 10px 16px;
+      border-bottom: 1px solid #161A22;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      font-size: 12px;
     }
 
-    .status-tag.blocked {
-      background: rgba(239, 68, 68, 0.15);
-      color: var(--crimson);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-
-    /* Agent list */
-    .agent-item {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding: 12px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    }
-
-    .agent-item:last-child {
+    tbody tr:last-child td {
       border-bottom: none;
     }
 
+    tbody tr:hover td {
+      background: #161B23;
+      color: var(--text-main);
+    }
+
+    .badge-pill {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 3px;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-pill.allowed {
+      background: #064E3B;
+      color: #34D399;
+      border: 1px solid #047857;
+    }
+
+    .badge-pill.blocked {
+      background: #7F1D1D;
+      color: #F87171;
+      border: 1px solid #B91C1C;
+    }
+
+    /* Agent Pool Breakdown */
     .agent-row {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border-subtle);
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      font-size: 13px;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .agent-row:last-child {
+      border-bottom: none;
     }
 
     .agent-name {
       font-family: var(--mono);
-      font-weight: 600;
-      color: var(--text);
+      font-weight: 500;
+      color: var(--text-main);
     }
 
-    .agent-amt {
+    .agent-spend {
       font-family: var(--mono);
       font-weight: 600;
       color: var(--emerald);
     }
 
-    /* Trip banner */
-    .alert-banner {
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      border-radius: 12px;
-      padding: 16px 20px;
-      margin-bottom: 28px;
-      display: none;
-      align-items: center;
+    /* Key Value Rules */
+    .rule-item {
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
       justify-content: space-between;
+      font-size: 12px;
     }
 
-    .alert-banner.visible {
-      display: flex;
+    .rule-item:last-child {
+      border-bottom: none;
     }
 
-    .alert-content {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .rule-key {
+      color: var(--text-muted);
     }
 
-    .alert-icon {
-      color: var(--crimson);
-      font-size: 20px;
-    }
-
-    .alert-title {
-      font-weight: 700;
-      font-size: 14px;
-      color: #FCA5A5;
-    }
-
-    .alert-desc {
-      font-size: 13px;
-      color: #EF4444;
+    .rule-val {
       font-family: var(--mono);
+      font-weight: 500;
+      color: var(--text-main);
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="brand">
-        <div class="brand-mark">b</div>
-        <div>
-          <div class="brand-title">
-            BOUND
-            <span id="badgeStatus" class="badge-live">ARMED & ROUTING</span>
-          </div>
-          <div style="font-size: 12px; color: var(--text-dim); margin-top: 2px;">
-            Proxy Daemon Active on <code>localhost:8443</code>
-          </div>
-        </div>
-      </div>
-      <div class="controls">
-        <button class="btn btn-secondary" onclick="simulateCall()">Simulate Call</button>
-        <button class="btn btn-secondary" onclick="resetVault()">Reset</button>
-        <button id="btnKill" class="btn btn-kill" onclick="toggleKillSwitch()">Emergency Freeze</button>
-      </div>
-    </header>
 
-    <div id="alertBanner" class="alert-banner">
-      <div class="alert-content">
-        <span class="alert-icon">&#x26A0;</span>
-        <div>
-          <div class="alert-title">CIRCUIT BREAKER ENGAGED</div>
-          <div id="alertReason" class="alert-desc">All outbound agent tool calls and HTTP requests are frozen.</div>
-        </div>
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="brand-wrap">
+      <div class="brand-logo">b</div>
+      <div class="brand-title">
+        Bound
+        <span id="navStatus" class="status-indicator">ACTIVE</span>
       </div>
-      <button class="btn btn-secondary" onclick="toggleKillSwitch()" style="font-size: 12px;">Disarm Breaker</button>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-primary" onclick="simulateCall()">Simulate Request</button>
+      <button class="btn" onclick="resetVault()">Reset Balance</button>
+      <button id="btnKill" class="btn btn-danger" onclick="toggleKillSwitch()">Freeze Agents</button>
+    </div>
+  </div>
+
+  <div class="content-area">
+
+    <!-- Alert banner -->
+    <div id="alertBanner" class="alert-strip">
+      <div>
+        <strong>Circuit Breaker Engaged:</strong>
+        <span id="alertReason">All outbound requests from agents are currently blocked.</span>
+      </div>
+      <button class="btn btn-danger" onclick="toggleKillSwitch()" style="font-size: 11px; padding: 4px 10px;">Disarm Breaker</button>
     </div>
 
-    <div class="metrics-grid">
-      <div class="card">
-        <div class="card-label">
-          <span>Remaining Budget</span>
-          <span id="pctRemaining" style="font-family: var(--mono); font-size: 11px;">100%</span>
-        </div>
-        <div id="metricRemaining" class="card-val">$25.00</div>
-        <div id="metricTotalCap" class="card-sub">of $25.00 lifetime cap</div>
-        <div class="progress-bar">
-          <div id="barRemaining" class="progress-fill" style="width: 100%;"></div>
-        </div>
+    <!-- Context info -->
+    <div class="context-bar">
+      <div>
+        <div class="context-title">Financial Rails & Spend Governor</div>
+        <div class="context-sub">Local Proxy Active on 127.0.0.1:8443</div>
       </div>
-
-      <div class="card">
-        <div class="card-label">Total Spent</div>
-        <div id="metricSpent" class="card-val">$0.0000</div>
-        <div id="metricTxCount" class="card-sub">0 transactions recorded</div>
-        <div class="progress-bar">
-          <div id="barSpent" class="progress-fill" style="width: 0%; background: var(--indigo);"></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-label">Daily Spend Limit</div>
-        <div id="metricDaily" class="card-val">$10.00</div>
-        <div class="card-sub">Rolling 24-hour limit</div>
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: 20%; background: var(--amber);"></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-label">Hourly Velocity Cap</div>
-        <div id="metricHourly" class="card-val">$5.00</div>
-        <div class="card-sub">Runaway loop cutoff</div>
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: 10%; background: var(--text-dim);"></div>
-        </div>
+      <div style="font-size: 12px; color: var(--text-dim); font-family: var(--mono);">
+        Live telemetry • 1s sync
       </div>
     </div>
 
-    <div class="dashboard-layout">
-      <!-- Live Interceptions Feed -->
+    <!-- Metrics Cards -->
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="metric-head">
+          <span class="metric-title">Remaining Vault Balance</span>
+          <span id="pctRemaining" class="metric-badge">100%</span>
+        </div>
+        <div id="metricRemaining" class="metric-value">$25.00</div>
+        <div id="metricTotalCap" class="metric-foot">Limit: $25.00 lifetime</div>
+        <div class="track">
+          <div id="barRemaining" class="fill" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-head">
+          <span class="metric-title">Total Settled Spend</span>
+          <span id="metricTxCount" class="metric-badge">0 tx</span>
+        </div>
+        <div id="metricSpent" class="metric-value">$0.0000</div>
+        <div class="metric-foot">Cumulative agent charges</div>
+        <div class="track">
+          <div id="barSpent" class="fill" style="width: 0%; background: var(--indigo);"></div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-head">
+          <span class="metric-title">Daily Velocity Limit</span>
+          <span class="metric-badge">24h</span>
+        </div>
+        <div id="metricDaily" class="metric-value">$10.00</div>
+        <div class="metric-foot">Rolling 24-hour cap</div>
+        <div class="track">
+          <div class="fill" style="width: 25%; background: var(--amber);"></div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-head">
+          <span class="metric-title">Hourly Velocity Limit</span>
+          <span class="metric-badge">1h</span>
+        </div>
+        <div id="metricHourly" class="metric-value">$5.00</div>
+        <div class="metric-foot">Loop runaway protection</div>
+        <div class="track">
+          <div class="fill" style="width: 15%; background: #4B5563;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="grid-layout">
+
+      <!-- Table Panel -->
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title">
-            Live Interceptions & Routing
-            <span id="feedCount" class="pill-counter">0 events</span>
+            Interception Log
+            <span id="feedCount" class="count-tag">0</span>
           </div>
-          <div style="font-size: 11px; color: var(--text-dim); font-family: var(--mono);">Auto-refreshes every 1s</div>
+          <div style="font-size: 11px; color: var(--text-dim); font-family: var(--mono);">
+            Audit log: ~/.bound/audit.jsonl
+          </div>
         </div>
 
-        <div class="table-container">
+        <div class="table-wrap">
           <table>
             <thead>
               <tr>
                 <th>Time</th>
                 <th>Status</th>
                 <th>Agent</th>
-                <th>Target & Path</th>
-                <th>Cost</th>
+                <th>Target / Operation</th>
+                <th>Amount</th>
               </tr>
             </thead>
             <tbody id="feedTable">
               <tr>
-                <td colspan="5" style="text-align: center; color: var(--text-dim); padding: 32px 0;">
-                  No requests intercepted yet. Run an agent or click "Simulate Call".
+                <td colspan="5" style="text-align: center; color: var(--text-dim); padding: 36px 0;">
+                  No requests intercepted yet. Run your agent or click "Simulate Request".
                 </td>
               </tr>
             </tbody>
@@ -547,47 +594,53 @@
         </div>
       </div>
 
-      <!-- Agent Breakdown & Security Policy -->
-      <div style="display: flex; flex-direction: column; gap: 24px;">
+      <!-- Right Column Panels -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+
+        <!-- Agent Spend Breakdown -->
         <div class="panel">
           <div class="panel-header">
             <div class="panel-title">
-              Agent Spend Pools
-              <span id="agentCount" class="pill-counter">0</span>
+              Agent Accounts
+              <span id="agentCount" class="count-tag">0</span>
             </div>
           </div>
           <div id="agentsList">
-            <div style="font-size: 12px; color: var(--text-dim); padding: 12px 0;">
-              No agents active yet.
+            <div style="font-size: 12px; color: var(--text-dim); padding: 16px 18px;">
+              No agents registered yet.
             </div>
           </div>
         </div>
 
+        <!-- Security Rules Policy -->
         <div class="panel">
           <div class="panel-header">
-            <div class="panel-title">Active Security Rules</div>
+            <div class="panel-title">Governor Parameters</div>
           </div>
-          <div style="font-size: 12px; color: var(--text-muted); display: flex; flex-direction: column; gap: 10px;">
-            <div style="display: flex; justify-content: space-between;">
-              <span>Runaway Loop Detector:</span>
-              <strong style="color: var(--text); font-family: var(--mono);">>5 calls / 30s</strong>
+          <div>
+            <div class="rule-item">
+              <span class="rule-key">Loop Breaker</span>
+              <span class="rule-val">> 5 calls / 30s</span>
             </div>
-            <div style="display: flex; justify-content: space-between;">
-              <span>Max Call Velocity:</span>
-              <strong style="color: var(--text); font-family: var(--mono);">60 calls / min</strong>
+            <div class="rule-item">
+              <span class="rule-key">Rate Limit</span>
+              <span class="rule-val">60 calls / min</span>
             </div>
-            <div style="display: flex; justify-content: space-between;">
-              <span>Human Escrow Trigger:</span>
-              <strong style="color: var(--text); font-family: var(--mono);">> $15.00 / call</strong>
+            <div class="rule-item">
+              <span class="rule-key">Escrow Threshold</span>
+              <span class="rule-val">> $15.00 / call</span>
             </div>
-            <div style="display: flex; justify-content: space-between;">
-              <span>Audit Storage:</span>
-              <strong style="color: var(--text); font-family: var(--mono);">~/.bound/audit.jsonl</strong>
+            <div class="rule-item">
+              <span class="rule-key">Default Rail</span>
+              <span class="rule-val">api.openai.com</span>
             </div>
           </div>
         </div>
+
       </div>
+
     </div>
+
   </div>
 
   <script>
@@ -605,22 +658,22 @@
     function renderDashboard(data) {
       // Breaker status
       const tripped = data.breaker_tripped;
-      const badge = document.getElementById('badgeStatus');
+      const navStatus = document.getElementById('navStatus');
       const btnKill = document.getElementById('btnKill');
       const banner = document.getElementById('alertBanner');
       const alertReason = document.getElementById('alertReason');
 
       if (tripped) {
-        badge.className = 'badge-live badge-tripped';
-        badge.innerText = 'BREAKER TRIPPED';
+        navStatus.className = 'status-indicator tripped';
+        navStatus.innerText = 'TRIPPED';
         btnKill.innerText = 'Resume System';
         btnKill.classList.add('active');
         banner.classList.add('visible');
         alertReason.innerText = data.trip_reason || 'Outbound traffic frozen by governor.';
       } else {
-        badge.className = 'badge-live';
-        badge.innerText = 'ARMED & ROUTING';
-        btnKill.innerText = 'Emergency Freeze';
+        navStatus.className = 'status-indicator';
+        navStatus.innerText = 'ACTIVE';
+        btnKill.innerText = 'Freeze Agents';
         btnKill.classList.remove('active');
         banner.classList.remove('visible');
       }
@@ -632,7 +685,7 @@
       const pct = maxTotal > 0 ? Math.max(0, Math.min(100, Math.round((remaining / maxTotal) * 100))) : 100;
 
       document.getElementById('metricRemaining').innerText = '$' + remaining.toFixed(2);
-      document.getElementById('metricTotalCap').innerText = 'of $' + maxTotal.toFixed(2) + ' lifetime cap';
+      document.getElementById('metricTotalCap').innerText = 'Limit: $' + maxTotal.toFixed(2) + ' lifetime';
       document.getElementById('pctRemaining').innerText = pct + '%';
       
       const barRem = document.getElementById('barRemaining');
@@ -644,15 +697,15 @@
       }
 
       document.getElementById('metricSpent').innerText = '$' + totalSpent.toFixed(4);
-      document.getElementById('metricTxCount').innerText = (data.total_transactions || 0) + ' transactions recorded';
+      document.getElementById('metricTxCount').innerText = (data.total_transactions || 0) + ' tx';
 
-      // Live Feed
+      // Feed
       const audits = data.recent_audits || [];
-      document.getElementById('feedCount').innerText = audits.length + ' events';
+      document.getElementById('feedCount').innerText = audits.length;
       const feedTable = document.getElementById('feedTable');
 
       if (audits.length === 0) {
-        feedTable.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-dim); padding: 32px 0;">No requests intercepted yet. Run an agent or click "Simulate Call".</td></tr>';
+        feedTable.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-dim); padding: 36px 0;">No requests intercepted yet. Run your agent or click "Simulate Request".</td></tr>';
       } else {
         feedTable.innerHTML = audits.map(a => {
           const t = new Date(a.timestamp).toLocaleTimeString();
@@ -661,10 +714,10 @@
           return `
             <tr>
               <td>${t}</td>
-              <td><span class="status-tag ${tagClass}">${tagText}</span></td>
-              <td style="color: var(--text); font-weight: 600;">${escapeHtml(a.agent_id)}</td>
+              <td><span class="badge-pill ${tagClass}">${tagText}</span></td>
+              <td style="color: var(--text-main); font-weight: 500;">${escapeHtml(a.agent_id)}</td>
               <td>
-                <div style="color: var(--text);">${escapeHtml(a.target)}</div>
+                <div style="color: var(--text-main);">${escapeHtml(a.target)}</div>
                 <div style="font-size: 11px; color: var(--text-dim);">${escapeHtml(a.action)}</div>
               </td>
               <td style="color: ${a.allowed ? 'var(--emerald)' : 'var(--crimson)'}; font-weight: 600;">
@@ -682,16 +735,14 @@
       const agentsList = document.getElementById('agentsList');
 
       if (agentKeys.length === 0) {
-        agentsList.innerHTML = '<div style="font-size: 12px; color: var(--text-dim); padding: 12px 0;">No agents active yet.</div>';
+        agentsList.innerHTML = '<div style="font-size: 12px; color: var(--text-dim); padding: 16px 18px;">No agents registered yet.</div>';
       } else {
         agentsList.innerHTML = agentKeys.map(k => {
           const val = breakdown[k];
           return `
-            <div class="agent-item">
-              <div class="agent-row">
-                <span class="agent-name">${escapeHtml(k)}</span>
-                <span class="agent-amt">$${val.toFixed(4)}</span>
-              </div>
+            <div class="agent-row">
+              <span class="agent-name">${escapeHtml(k)}</span>
+              <span class="agent-spend">$${val.toFixed(4)}</span>
             </div>
           `;
         }).join('');
@@ -718,7 +769,7 @@
     }
 
     async function simulateCall() {
-      const agents = ['auto-coder-agent', 'researcher-agent', 'data-pipeline-agent', 'reviewer-bot'];
+      const agents = ['auto-coder', 'research-agent', 'indexer-agent', 'reviewer-bot'];
       const targets = ['api.openai.com', 'api.anthropic.com', 'api.github.com', 'generativelanguage.googleapis.com'];
       const randomAgent = agents[Math.floor(Math.random() * agents.length)];
       const randomTarget = targets[Math.floor(Math.random() * targets.length)];
@@ -746,7 +797,7 @@
       return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    // Start polling
+    // Polling
     fetchState();
     setInterval(fetchState, 1000);
   </script>
