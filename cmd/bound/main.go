@@ -21,6 +21,12 @@ import (
 	"github.com/404kernel/bound/pkg/vault"
 )
 
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 const Banner = `
   ██████╗  ██████╗ ██╗   ██╗███╗   ██╗██████╗ 
   ██╔══██╗██╔═══██╗██║   ██║████╗  ██║██╔══██╗
