@@ -110,6 +110,50 @@ func getPaths() (string, string) {
 	return filepath.Join(dir, "vault.json"), filepath.Join(dir, "audit.jsonl")
 }
 
+func printBootSequence(port string, policy vault.Policy, upstream string) {
+	bannerLines := []string{
+		"\x1b[38;2;130;80;250m  ██████╗  ██████╗ ██╗   ██╗███╗   ██╗██████╗ \x1b[0m",
+		"\x1b[38;2;110;105;252m  ██╔══██╗██╔═══██╗██║   ██║████╗  ██║██╔══██╗\x1b[0m",
+		"\x1b[38;2;85;135;253m  ██████╔╝██║   ██║██║   ██║██╔██╗ ██║██║  ██║\x1b[0m",
+		"\x1b[38;2;55;170;254m  ██╔══██╗██║   ██║██║   ██║██║╚██╗██║██║  ██║\x1b[0m",
+		"\x1b[38;2;0;215;254m  ██████╔╝╚██████╔╝╚██████╔╝██║ ╚████║██████╔╝\x1b[0m",
+		"\x1b[38;2;0;215;254m  ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚═════╝ \x1b[0m",
+		"  \x1b[90mAutonomous Financial Rails & Programmable Spend Vaults\x1b[0m\n",
+	}
+
+	for _, line := range bannerLines {
+		fmt.Println(line)
+		time.Sleep(20 * time.Millisecond)
+	}
+
+	steps := []struct {
+		desc string
+		tag  string
+	}{
+		{"Binding zero-trust spend vault", fmt.Sprintf("Cap: $%.2f", policy.MaxTotal)},
+		{"Calibrating loop circuit-breaker", "5 calls / 30s"},
+		{"Verifying cryptographically hashed ledger", "~/.bound/audit.jsonl"},
+		{"Establishing upstream AI proxy bridge", upstream},
+	}
+
+	for i, s := range steps {
+		fmt.Printf("  \x1b[90m[%d/4]\x1b[0m \x1b[37m%-42s\x1b[0m \x1b[90m(%s)\x1b[0m \x1b[32m✔\x1b[0m\n", i+1, s.desc, s.tag)
+		time.Sleep(30 * time.Millisecond)
+	}
+
+	dashURL := fmt.Sprintf("http://localhost%s/dashboard", port)
+	clickableURL := fmt.Sprintf("\x1b]8;;%s\x1b\\%s\x1b]8;;\x1b\\", dashURL, dashURL)
+
+	fmt.Printf("\n\x1b[38;2;0;215;254m╭──────────────────────────────────────────────────────────╮\x1b[0m\n")
+	fmt.Printf("\x1b[38;2;0;215;254m│\x1b[0m  \x1b[1;37mBOUND GOVERNANCE PROXY // ACTIVE\x1b[0m                        \x1b[38;2;0;215;254m│\x1b[0m\n")
+	fmt.Printf("\x1b[38;2;0;215;254m├──────────────────────────────────────────────────────────┤\x1b[0m\n")
+	fmt.Printf("\x1b[38;2;0;215;254m│\x1b[0m  Dashboard  : \x1b[1;36m%s\x1b[0m (Click or Ctrl+Click)   \x1b[38;2;0;215;254m│\x1b[0m\n", clickableURL)
+	fmt.Printf("\x1b[38;2;0;215;254m│\x1b[0m  Status     : \x1b[1;32m● OPERATIONAL\x1b[0m on port %s                    \x1b[38;2;0;215;254m│\x1b[0m\n", port)
+	fmt.Printf("\x1b[38;2;0;215;254m│\x1b[0m  Velocity   : \x1b[33m$%.2f/hr\x1b[0m | Daily: \x1b[33m$%.2f\x1b[0m | Total: \x1b[33m$%.2f\x1b[0m     \x1b[38;2;0;215;254m│\x1b[0m\n", policy.MaxHourly, policy.MaxDaily, policy.MaxTotal)
+	fmt.Printf("\x1b[38;2;0;215;254m╰──────────────────────────────────────────────────────────╯\x1b[0m\n")
+	fmt.Println("\x1b[90mPress Ctrl+C to safely shut down.\x1b[0m\n")
+}
+
 func runProxy(args []string) {
 	runProxyInternal(args, false)
 }
@@ -126,8 +170,6 @@ func runProxyInternal(args []string, autoLaunchBrowser bool) {
 	tgChat := fs.String("telegram-chat", "", "Optional Telegram Chat ID for escrow push notifications")
 	openDash := fs.Bool("open", autoLaunchBrowser, "Open dashboard automatically in default browser")
 	_ = fs.Parse(args)
-
-	fmt.Print(Banner)
 	vaultPath, auditPath := getPaths()
 
 	policy := vault.Policy{
@@ -168,14 +210,7 @@ func runProxyInternal(args []string, autoLaunchBrowser bool) {
 	}
 
 	dashURL := fmt.Sprintf("http://localhost%s/dashboard", *port)
-	// Clickable hyperlink in terminals supporting OSC 8 (Windows Terminal, VS Code, iTerm, Mintty, etc.)
-	clickableURL := fmt.Sprintf("\x1b]8;;%s\x1b\\%s\x1b]8;;\x1b\\", dashURL, dashURL)
-
-	fmt.Printf("[BOUND // ACTIVE] Governance daemon listening on %s\n", *port)
-	fmt.Printf("Dashboard       : %s (Click or Ctrl+Click)\n", clickableURL)
-	fmt.Printf("Budget Caps     : Total: $%.2f | Daily: $%.2f | Hourly: $%.2f\n", policy.MaxTotal, policy.MaxDaily, policy.MaxHourly)
-	fmt.Printf("Upstream Rail   : %s\n", *upstream)
-	fmt.Println("Press Ctrl+C to shut down.")
+	printBootSequence(*port, policy, *upstream)
 
 	if *openDash {
 		go func() {
