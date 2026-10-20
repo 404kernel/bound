@@ -111,6 +111,19 @@ bound run --budget 5.00 --hourly 2.00 -- python my_agent.py
 bound proxy --port :8443 --budget 50.00 --hourly 10.00 --upstream https://api.openai.com
 ```
 
+### Option 3: Real-Time Web Dashboard
+
+Whenever the proxy is running, navigate to:
+```text
+http://localhost:8443/dashboard
+```
+
+Features:
+- **Live Stream**: Auto-refreshing table of intercepted agent calls and costs
+- **Spend Gauges**: Real-time visualization of daily caps and velocity limits
+- **Emergency Kill Switch**: One-click freeze to instantly disarm all outbound agent traffic
+- **Agent Pools**: Per-agent spend breakdown and active audit records
+
 ---
 
 ## CLI Reference

@@ -186,3 +186,19 @@ func (g *Governor) ResetBreaker() {
 	g.fingerprints = make(map[string]*CallFingerprint)
 	g.recentCalls = nil
 }
+
+func (g *Governor) Trip(reason string) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	g.BreakerTripped = true
+	if reason == "" {
+		reason = "Emergency manual kill-switch engaged"
+	}
+	g.TripReason = reason
+}
+
+func (g *Governor) Status() (bool, string) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	return g.BreakerTripped, g.TripReason
+}

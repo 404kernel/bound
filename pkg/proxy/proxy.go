@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/404kernel/bound/pkg/dashboard"
 	"github.com/404kernel/bound/pkg/governor"
 	"github.com/404kernel/bound/pkg/ledger"
 	"github.com/404kernel/bound/pkg/vault"
@@ -52,6 +53,11 @@ func NewServer(addr string, gov *governor.Governor, v *vault.Vault, led *ledger.
 	mux := http.NewServeMux()
 	mux.HandleFunc("/bound/status", s.handleStatus)
 	mux.HandleFunc("/bound/reset", s.handleReset)
+
+	// Mount embedded real-time web dashboard
+	dash := dashboard.NewDashboard(v, gov, led)
+	dash.RegisterRoutes(mux)
+
 	mux.HandleFunc("/", s.handleProxy)
 
 	s.server = &http.Server{

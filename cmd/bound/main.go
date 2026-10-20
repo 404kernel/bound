@@ -114,10 +114,11 @@ func runProxy(args []string) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("🟢 [BOUND // ACTIVE] Governance daemon listening on %s\n", *port)
-	fmt.Printf("🔒 Budget Caps  : Total: $%.2f | Daily: $%.2f | Hourly: $%.2f\n", policy.MaxTotal, policy.MaxDaily, policy.MaxHourly)
-	fmt.Printf("🎯 Upstream Rail: %s\n", *upstream)
-	fmt.Println("⚡ Press Ctrl+C to shut down.")
+	fmt.Printf("[BOUND // ACTIVE] Governance daemon listening on %s\n", *port)
+	fmt.Printf("Dashboard       : http://localhost%s/dashboard\n", *port)
+	fmt.Printf("Budget Caps     : Total: $%.2f | Daily: $%.2f | Hourly: $%.2f\n", policy.MaxTotal, policy.MaxDaily, policy.MaxHourly)
+	fmt.Printf("Upstream Rail   : %s\n", *upstream)
+	fmt.Println("Press Ctrl+C to shut down.")
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)

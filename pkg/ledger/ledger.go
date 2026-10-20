@@ -58,9 +58,9 @@ func (l *Ledger) Log(entry AuditEntry) error {
 }
 
 func (l *Ledger) FormatEntry(e AuditEntry) string {
-	status := "✅ ALLOWED"
+	status := "ALLOWED"
 	if !e.Allowed {
-		status = "🚫 BLOCKED"
+		status = "BLOCKED"
 	}
 
 	return fmt.Sprintf("[%s] %s | Agent: %s | Target: %s | $%.4f (Remaining: $%.2f) - %s",
@@ -72,4 +72,42 @@ func (l *Ledger) FormatEntry(e AuditEntry) string {
 		e.Remaining,
 		e.Reason,
 	)
+}
+
+func (l *Ledger) Recent(limit int) ([]AuditEntry, error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	f, err := os.Open(l.path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	defer f.Close()
+
+	var all []AuditEntry
+	dec := json.NewDecoder(f)
+	for dec.More() {
+		var entry AuditEntry
+		if err := dec.Decode(&entry); err == nil {
+			all = append(all, entry)
+		}
+	}
+
+	if limit <= 0 || len(all) <= limit {
+		// Reverse chronological
+		res := make([]AuditEntry, len(all))
+		for i, e := range all {
+			res[len(all)-1-i] = e
+		}
+		return res, nil
+	}
+
+	res := make([]AuditEntry, limit)
+	for i := 0; i < limit; i++ {
+		res[i] = all[len(all)-1-i]
+	}
+	return res, nil
 }

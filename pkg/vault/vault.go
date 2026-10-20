@@ -256,3 +256,38 @@ func (v *Vault) Reset() error {
 	v.AgentSpend = make(map[string]float64)
 	return v.saveUnsafe()
 }
+
+func (v *Vault) SetPolicy(p Policy) error {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	v.Policy = p
+	return v.saveUnsafe()
+}
+
+func (v *Vault) AgentBreakdown() map[string]float64 {
+	v.mu.RLock()
+	defer v.mu.RUnlock()
+	res := make(map[string]float64)
+	for k, val := range v.AgentSpend {
+		res[k] = val
+	}
+	return res
+}
+
+func (v *Vault) RecentTransactions(limit int) []Transaction {
+	v.mu.RLock()
+	defer v.mu.RUnlock()
+	n := len(v.Transactions)
+	if limit <= 0 || n <= limit {
+		res := make([]Transaction, n)
+		for i, tx := range v.Transactions {
+			res[n-1-i] = tx
+		}
+		return res
+	}
+	res := make([]Transaction, limit)
+	for i := 0; i < limit; i++ {
+		res[i] = v.Transactions[n-1-i]
+	}
+	return res
+}
