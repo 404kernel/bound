@@ -1,21 +1,29 @@
-<div align="center">
+<p align="center">
+  <a href="https://github.com/404kernel/bound">
+    <img src="assets/icon.png" width="120" height="120" alt="Bound Logo" />
+  </a>
+</p>
 
-<img src="assets/banner.svg" alt="BOUND // The Programmable Spend Vault & Financial Rails for Autonomous AI Agents" width="100%" />
+<h1 align="center">Bound</h1>
 
-<br/><br/>
+<p align="center">
+  <strong>Programmable spend vaults and financial rails for autonomous AI agents.</strong>
+</p>
 
-[![Go Version](https://img.shields.io/badge/Go-1.27+-7D56F4.svg?style=for-the-badge&logo=go)](https://golang.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-04B575.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![Latency](https://img.shields.io/badge/Overhead-<2ms-00D7FE.svg?style=for-the-badge)](https://github.com/404kernel/bound)
-[![Architecture](https://img.shields.io/badge/Zero--Trust-Enforced-FFB86C.svg?style=for-the-badge)](https://github.com/404kernel/bound)
+<p align="center">
+  <a href="https://golang.org"><img src="https://img.shields.io/badge/Go-1.27+-7D56F4.svg?style=flat-square&logo=go" alt="Go Version" /></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-04B575.svg?style=flat-square" alt="MIT License" /></a>
+  <a href="https://github.com/404kernel/bound"><img src="https://img.shields.io/badge/Latency-<2ms-00D7FE.svg?style=flat-square" alt="Sub-2ms" /></a>
+  <a href="https://github.com/404kernel/bound"><img src="https://img.shields.io/badge/Zero--Trust-Enforced-FFB86C.svg?style=flat-square" alt="Zero Trust" /></a>
+</p>
 
-<br/>
-
-**Eliminate the anxiety of letting autonomous LLMs touch money, APIs, and execution rails.**
-
-[Quick Start](#quick-start) • [The Problem](#the-problem) • [Architecture](#architecture) • [CLI Reference](#cli-reference) • [SDK Integration](#sdk-integration)
-
-<br/>
+<p align="center">
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#the-problem">The Problem</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#cli-reference">CLI Reference</a> •
+  <a href="#sdk-integration">SDK Integration</a>
+</p>
 
 ```text
 ╭──────────────────────────────────────────────────────────╮
@@ -30,8 +38,6 @@
 │  Circuit Breaker   : ACTIVE                              │
 ╰──────────────────────────────────────────────────────────╯
 ```
-
-</div>
 
 ---
 
