@@ -9,7 +9,7 @@
   ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚═════╝ 
 ```
 
-### ⚡ The Financial & Execution Governor for Autonomous AI Agents
+### 🛡️ The Programmable Spend Vault & Financial Rails for Autonomous AI Agents
 
 [![Go Version](https://img.shields.io/badge/Go-1.27+-7D56F4.svg?style=for-the-badge&logo=go)](https://golang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-04B575.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)

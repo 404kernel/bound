@@ -25,7 +25,7 @@ const Banner = `
   ██╔══██╗██║   ██║██║   ██║██║╚██╗██║██║  ██║
   ██████╔╝╚██████╔╝╚██████╔╝██║ ╚████║██████╔╝
   ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚═════╝ 
-  ⚡ The Financial & Execution Governor for Autonomous AI Agents
+  🛡️ The Programmable Spend Vault & Financial Rails for Autonomous AI Agents
 `
 
 func main() {
