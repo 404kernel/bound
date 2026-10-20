@@ -118,7 +118,7 @@ func printBootSequence(port string, policy vault.Policy, upstream string) {
 		"\x1b[38;2;55;170;254m  ██╔══██╗██║   ██║██║   ██║██║╚██╗██║██║  ██║\x1b[0m",
 		"\x1b[38;2;0;215;254m  ██████╔╝╚██████╔╝╚██████╔╝██║ ╚████║██████╔╝\x1b[0m",
 		"\x1b[38;2;0;215;254m  ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚═════╝ \x1b[0m",
-		"  \x1b[90mAutonomous Financial Rails & Programmable Spend Vaults\x1b[0m\n",
+		"  \x1b[90mAutonomous Financial Rails & Programmable Spend Vaults\x1b[0m",
 	}
 
 	for _, line := range bannerLines {
@@ -151,7 +151,7 @@ func printBootSequence(port string, policy vault.Policy, upstream string) {
 	fmt.Printf("\x1b[38;2;0;215;254m│\x1b[0m  Status     : \x1b[1;32m● OPERATIONAL\x1b[0m on port %s                    \x1b[38;2;0;215;254m│\x1b[0m\n", port)
 	fmt.Printf("\x1b[38;2;0;215;254m│\x1b[0m  Velocity   : \x1b[33m$%.2f/hr\x1b[0m | Daily: \x1b[33m$%.2f\x1b[0m | Total: \x1b[33m$%.2f\x1b[0m     \x1b[38;2;0;215;254m│\x1b[0m\n", policy.MaxHourly, policy.MaxDaily, policy.MaxTotal)
 	fmt.Printf("\x1b[38;2;0;215;254m╰──────────────────────────────────────────────────────────╯\x1b[0m\n")
-	fmt.Println("\x1b[90mPress Ctrl+C to safely shut down.\x1b[0m\n")
+	fmt.Println("\x1b[90mPress Ctrl+C to safely shut down.\x1b[0m")
 }
 
 func runProxy(args []string) {
