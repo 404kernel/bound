@@ -86,29 +86,57 @@ Autonomous AI agents (Claude Code, AutoGPT, CrewAI, LangChain, custom loops) are
 
 ## Quick Start
 
-### Installation
+### 1. One-Line Instant Installation
 
+**macOS & Linux:**
 ```bash
-# Clone and build in 5 seconds
-git clone https://github.com/404kernel/bound.git
-cd bound
-go build -o bound.exe ./cmd/bound
+curl -fsSL https://raw.githubusercontent.com/404kernel/bound/main/install.sh | sh
 ```
 
-### Option 1: Wrap ANY Agent in One Command
+**Windows (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/404kernel/bound/main/install.ps1 | iex
+```
 
-Run any existing Python, Node, or Go agent script wrapped in a strict $5.00 budget:
+**Homebrew (macOS):**
+```bash
+brew tap 404kernel/bound
+brew install bound
+```
 
+**Python SDK:**
+```bash
+pip install bound-ai
+```
+
+---
+
+### 2. Configure Alerts in 30 Seconds
+
+Run the interactive setup wizard to link Telegram, Discord, or Slack:
+```bash
+bound setup
+```
+
+---
+
+### 3. Usage Modes
+
+#### Option A: Wrap ANY Agent Process in One Command
+Run any Python, Node, or Go agent wrapped in strict budget caps:
 ```bash
 bound run --budget 5.00 --hourly 2.00 -- python my_agent.py
 ```
 
-*Bound automatically starts a local proxy, injects environment variables (`HTTP_PROXY`, `OPENAI_BASE_URL`), and cuts the process if the agent attempts to exceed $5.00.*
-
-### Option 2: Start the Standalone Proxy Daemon
-
+#### Option B: Start the Standalone Proxy Daemon
 ```bash
-bound proxy --port :8443 --budget 50.00 --hourly 10.00 --upstream https://api.openai.com
+bound proxy --port :8443 --budget 50.00 --hourly 10.00
+```
+
+#### Option C: Live Multi-Agent Simulation
+Test velocity limits, runaway loop circuit breakers, and Telegram escrows in real-time:
+```bash
+go run ./scripts/simulate_traffic.go
 ```
 
 ### Option 3: Real-Time Web Dashboard

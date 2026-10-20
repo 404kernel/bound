@@ -15,3 +15,8 @@ bound_debug.log
 Thumbs.db
 .vscode/
 .idea/
+
+# Python packaging
+dist/
+build/
+*.egg-info/
