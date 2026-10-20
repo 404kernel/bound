@@ -9,7 +9,7 @@
   ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚═════╝ 
 ```
 
-### 🛡️ The Programmable Spend Vault & Financial Rails for Autonomous AI Agents
+### The Programmable Spend Vault & Financial Rails for Autonomous AI Agents
 
 [![Go Version](https://img.shields.io/badge/Go-1.27+-7D56F4.svg?style=for-the-badge&logo=go)](https://golang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-04B575.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
@@ -20,7 +20,7 @@
 
 **Eliminate the anxiety of letting autonomous LLMs touch money, APIs, and execution rails.**
 
-[Quick Start](#-quick-start) • [The Problem](#-the-problem) • [Architecture](#-architecture) • [CLI Commands](#-cli-commands) • [SDK Integration](#-sdk-integration)
+[Quick Start](#quick-start) • [The Problem](#the-problem) • [Architecture](#architecture) • [CLI Commands](#cli-commands) • [SDK Integration](#sdk-integration)
 
 <br/>
 
