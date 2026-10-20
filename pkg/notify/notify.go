@@ -70,10 +70,29 @@ func (n *Notifier) SendAlert(req EscrowRequest) error {
 		text := fmt.Sprintf("🔒 *BOUND ESCROW HOLD*\n\n*Agent:* `%s`\n*Target:* `%s`\n*Amount:* `$%.2f`\n*Reason:* %s\n\n_Review in Bound Dashboard at http://localhost:8443/dashboard_",
 			req.AgentID, req.Target, req.Amount, req.Reason)
 
-		payload := map[string]string{
-			"chat_id":    n.TelegramChatID,
-			"text":       text,
-			"parse_mode": "Markdown",
+		// Telegram inline keyboard for one-tap mobile decision
+		type InlineButton struct {
+			Text         string `json:"text"`
+			CallbackData string `json:"callback_data"`
+		}
+		type InlineKeyboard struct {
+			InlineKeyboard [][]InlineButton `json:"inline_keyboard"`
+		}
+
+		keyboard := InlineKeyboard{
+			InlineKeyboard: [][]InlineButton{
+				{
+					{Text: fmt.Sprintf("✅ Approve ($%.2f)", req.Amount), CallbackData: fmt.Sprintf("bound_approve:%s", req.AgentID)},
+					{Text: "❌ Reject & Halt", CallbackData: fmt.Sprintf("bound_reject:%s", req.AgentID)},
+				},
+			},
+		}
+
+		payload := map[string]interface{}{
+			"chat_id":      n.TelegramChatID,
+			"text":         text,
+			"parse_mode":   "Markdown",
+			"reply_markup": keyboard,
 		}
 		data, _ := json.Marshal(payload)
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

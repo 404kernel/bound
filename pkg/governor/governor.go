@@ -33,12 +33,29 @@ func DefaultConfig() Config {
 
 // ModelPricing rates in USD per 1,000 tokens
 var DefaultPricing = map[string]struct{ Input, Output float64 }{
+	// OpenAI
 	"gpt-4o":                   {Input: 0.0025, Output: 0.010},
 	"gpt-4o-mini":              {Input: 0.00015, Output: 0.0006},
+	"gpt-4-turbo":              {Input: 0.0100, Output: 0.030},
+	"o1":                       {Input: 0.0150, Output: 0.060},
+	"o1-mini":                  {Input: 0.0030, Output: 0.012},
+	"o3-mini":                  {Input: 0.0011, Output: 0.0044},
+	// Anthropic
 	"claude-3-5-sonnet-latest": {Input: 0.0030, Output: 0.015},
+	"claude-3-5-sonnet":        {Input: 0.0030, Output: 0.015},
+	"claude-3-7-sonnet":        {Input: 0.0030, Output: 0.015},
 	"claude-3-5-haiku-latest":  {Input: 0.0008, Output: 0.004},
+	"claude-3-5-haiku":         {Input: 0.0008, Output: 0.004},
+	"claude-3-opus-latest":     {Input: 0.0150, Output: 0.075},
+	// Google Gemini
+	"gemini-2.0-flash":         {Input: 0.0001, Output: 0.0004},
 	"gemini-2.5-flash":         {Input: 0.0001, Output: 0.0004},
-	"gemini-3.5-flash":         {Input: 0.0001, Output: 0.0004},
+	"gemini-1.5-pro":           {Input: 0.00125, Output: 0.0050},
+	"gemini-1.5-flash":         {Input: 0.000075, Output: 0.0003},
+	// DeepSeek
+	"deepseek-chat":            {Input: 0.00014, Output: 0.00028},
+	"deepseek-reasoner":        {Input: 0.00055, Output: 0.00219},
+	// Fallback Default
 	"default":                  {Input: 0.0010, Output: 0.0020},
 }
 

@@ -61,6 +61,7 @@ func NewServerWithNotifier(addr string, gov *governor.Governor, v *vault.Vault, 
 	mux.HandleFunc("/bound/status", s.handleStatus)
 	mux.HandleFunc("/bound/reset", s.handleReset)
 	mux.HandleFunc("/bound/check", s.handleCheck)
+	mux.HandleFunc("/bound/api/telegram-webhook", s.handleTelegramWebhook)
 
 	// Mount embedded real-time web dashboard
 	dash := dashboard.NewDashboard(v, gov, led)
@@ -184,6 +185,49 @@ func (s *Server) handleCheck(w http.ResponseWriter, r *http.Request) {
 		RemainingBudget: s.v.Remaining(),
 		CurrentTotal:    s.v.TotalSpent,
 	})
+}
+
+func (s *Server) handleTelegramWebhook(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var update struct {
+		CallbackQuery *struct {
+			ID   string `json:"id"`
+			Data string `json:"data"`
+			From struct {
+				Username string `json:"username"`
+			} `json:"from"`
+		} `json:"callback_query"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	if update.CallbackQuery != nil {
+		action := update.CallbackQuery.Data
+		if strings.HasPrefix(action, "bound_approve:") {
+			agent := strings.TrimPrefix(action, "bound_approve:")
+			_ = s.led.Log(ledger.AuditEntry{
+				AgentID:   agent,
+				Target:    "telegram",
+				Action:    "human_approval",
+				Allowed:   true,
+				Reason:    fmt.Sprintf("Approved via Telegram by @%s", update.CallbackQuery.From.Username),
+				Remaining: s.v.Remaining(),
+			})
+		} else if strings.HasPrefix(action, "bound_reject:") {
+			agent := strings.TrimPrefix(action, "bound_reject:")
+			s.gov.Trip(fmt.Sprintf("Halted via Telegram by @%s for agent %s", update.CallbackQuery.From.Username, agent))
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte(`{"status":"ok"}`))
 }
 
 func (s *Server) handleProxy(w http.ResponseWriter, r *http.Request) {

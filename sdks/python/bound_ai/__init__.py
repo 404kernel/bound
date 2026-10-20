@@ -12,4 +12,4 @@ from .client import (
 )
 
 __all__ = ["BoundClient", "BoundError", "protect", "check", "status"]
-__version__ = "0.1.0"
+__version__ = "0.2.0"
