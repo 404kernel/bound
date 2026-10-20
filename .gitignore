@@ -1,6 +1,6 @@
 # Binaries
-bound
-bound.exe
+/bound
+/bound.exe
 *.exe
 *.dll
 *.so
