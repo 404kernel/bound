@@ -8,17 +8,7 @@ import (
 
 func TestConfigSaveAndLoad(t *testing.T) {
 	tmpDir := t.TempDir()
-	origHome := os.Getenv("USERPROFILE")
-	if origHome == "" {
-		origHome = os.Getenv("HOME")
-	}
-	defer func() {
-		_ = os.Setenv("USERPROFILE", origHome)
-		_ = os.Setenv("HOME", origHome)
-	}()
-
-	_ = os.Setenv("USERPROFILE", tmpDir)
-	_ = os.Setenv("HOME", tmpDir)
+	t.Setenv("BOUND_CONFIG_DIR", tmpDir)
 
 	cfg := Config{
 		TelegramBot:    "12345:TESTBOT",

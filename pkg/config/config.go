@@ -22,6 +22,9 @@ func DefaultConfig() Config {
 }
 
 func ConfigPath() string {
+	if custom := os.Getenv("BOUND_CONFIG_DIR"); custom != "" {
+		return filepath.Join(custom, ".bound", "config.json")
+	}
 	home, err := os.UserHomeDir()
 	if err != nil {
 		home = "."
