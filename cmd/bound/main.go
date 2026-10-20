@@ -195,7 +195,16 @@ func runProxyInternal(args []string, autoLaunchBrowser bool) {
 	}()
 
 	if err := srv.Start(); err != nil && err != http.ErrServerClosed {
-		fmt.Printf("Proxy error: %v\n", err)
+		fmt.Printf("\n⚠️ Proxy error: %v\n", err)
+		if strings.Contains(err.Error(), "bind") || strings.Contains(err.Error(), "address already in use") {
+			fmt.Printf("\n💡 Bound is already active and listening on port %s!\n", *port)
+			fmt.Println("Opening the live dashboard in your browser...")
+			openBrowser(dashURL)
+		}
+		if *openDash || len(os.Args) < 2 {
+			fmt.Println("\nPress Enter to exit...")
+			_, _ = bufio.NewReader(os.Stdin).ReadBytes('\n')
+		}
 	}
 }
 
