@@ -91,23 +91,20 @@
       gap: 8px;
     }
 
-    .status-indicator {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 4px;
-      background: #064E3B;
-      color: #34D399;
-      border: 1px solid #047857;
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+      display: inline-block;
+      margin-left: 2px;
+      transition: background 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .status-indicator.tripped {
-      background: #7F1D1D;
-      color: #F87171;
-      border-color: #B91C1C;
+    .status-dot.tripped {
+      background: var(--crimson);
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
     }
 
     .topbar-right {
@@ -474,7 +471,7 @@
       <div class="brand-logo">b</div>
       <div class="brand-title">
         Bound
-        <span id="navStatus" class="status-indicator">ACTIVE</span>
+        <span id="navStatusDot" class="status-dot" title="Operational"></span>
       </div>
     </div>
     <div class="topbar-right">
@@ -658,21 +655,21 @@
     function renderDashboard(data) {
       // Breaker status
       const tripped = data.breaker_tripped;
-      const navStatus = document.getElementById('navStatus');
+      const navDot = document.getElementById('navStatusDot');
       const btnKill = document.getElementById('btnKill');
       const banner = document.getElementById('alertBanner');
       const alertReason = document.getElementById('alertReason');
 
       if (tripped) {
-        navStatus.className = 'status-indicator tripped';
-        navStatus.innerText = 'TRIPPED';
+        navDot.className = 'status-dot tripped';
+        navDot.title = 'Circuit Breaker Tripped';
         btnKill.innerText = 'Resume System';
         btnKill.classList.add('active');
         banner.classList.add('visible');
         alertReason.innerText = data.trip_reason || 'Outbound traffic frozen by governor.';
       } else {
-        navStatus.className = 'status-indicator';
-        navStatus.innerText = 'ACTIVE';
+        navDot.className = 'status-dot';
+        navDot.title = 'Governor Armed & Routing';
         btnKill.innerText = 'Freeze Agents';
         btnKill.classList.remove('active');
         banner.classList.remove('visible');
