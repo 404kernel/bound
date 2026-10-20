@@ -28,12 +28,15 @@ archives:
     builds:
       - bound
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    formats:
+      - tar.gz
     format_overrides:
       - goos: windows
-        format: zip
+        formats:
+          - zip
     files:
       - README.md
-      - LICENSE*
+      - LICENSE
 
 checksum:
   name_template: "checksums.txt"
