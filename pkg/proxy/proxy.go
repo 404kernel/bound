@@ -1,0 +1,198 @@
+package proxy
+
+import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httputil"
+	"net/url"
+	"strings"
+	"time"
+
+	"github.com/404kernel/bound/pkg/governor"
+	"github.com/404kernel/bound/pkg/ledger"
+	"github.com/404kernel/bound/pkg/vault"
+)
+
+type Server struct {
+	addr     string
+	gov      *governor.Governor
+	v        *vault.Vault
+	led      *ledger.Ledger
+	server   *http.Server
+	upstream *url.URL
+}
+
+func NewServer(addr string, gov *governor.Governor, v *vault.Vault, led *ledger.Ledger, defaultUpstream string) (*Server, error) {
+	if addr == "" {
+		addr = ":8443"
+	}
+
+	var upURL *url.URL
+	var err error
+	if defaultUpstream != "" {
+		upURL, err = url.Parse(defaultUpstream)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	s := &Server{
+		addr:     addr,
+		gov:      gov,
+		v:        v,
+		led:      led,
+		upstream: upURL,
+	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/bound/status", s.handleStatus)
+	mux.HandleFunc("/bound/reset", s.handleReset)
+	mux.HandleFunc("/", s.handleProxy)
+
+	s.server = &http.Server{
+		Addr:    addr,
+		Handler: mux,
+	}
+
+	return s, nil
+}
+
+func (s *Server) Start() error {
+	return s.server.ListenAndServe()
+}
+
+func (s *Server) Close() error {
+	return s.server.Close()
+}
+
+func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
+	summary := s.v.Summary()
+	summary["breaker_tripped"] = s.gov.BreakerTripped
+	summary["trip_reason"] = s.gov.TripReason
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(summary)
+}
+
+func (s *Server) handleReset(w http.ResponseWriter, r *http.Request) {
+	_ = s.v.Reset()
+	s.gov.ResetBreaker()
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte(`{"status": "ok", "message": "Bound vault and circuit breaker reset successfully."}`))
+}
+
+func (s *Server) handleProxy(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+
+	// 1. Determine Agent ID
+	agentID := r.Header.Get("X-Bound-Agent-ID")
+	if agentID == "" {
+		agentID = "default-agent"
+	}
+
+	// 2. Determine target
+	targetHost := r.Host
+	if s.upstream != nil {
+		targetHost = s.upstream.Host
+	}
+
+	// Read and buffer body for hashing & inspection
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = io.ReadAll(r.Body)
+		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+	}
+
+	hash := sha256.Sum256(bodyBytes)
+	hashStr := hex.EncodeToString(hash[:16])
+
+	// Estimate cost based on path and payload length
+	estimatedCost := 0.001 // minimum floor per request
+	if strings.Contains(r.URL.Path, "chat/completions") || strings.Contains(r.URL.Path, "messages") {
+		// Approximate ~4 chars per token
+		tokens := len(bodyBytes) / 4
+		if tokens < 100 {
+			tokens = 100
+		}
+		estimatedCost = governor.EstimateTokenCost("gpt-4o", tokens, 200)
+	}
+
+	// 3. Evaluate with Bound Governor
+	decision := s.gov.Evaluate(agentID, targetHost, hashStr, estimatedCost)
+	if !decision.Allowed {
+		s.led.Log(ledger.AuditEntry{
+			AgentID:   agentID,
+			Target:    targetHost,
+			Action:    r.Method + " " + r.URL.Path,
+			Amount:    decision.Cost,
+			Allowed:   false,
+			Reason:    decision.Reason,
+			Remaining: s.v.Remaining(),
+		})
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("X-Bound-Status", "BLOCKED")
+		w.WriteHeader(http.StatusPaymentRequired) // 402 Payment Required
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"error":            "bound_governor_rejected",
+			"reason":           decision.Reason,
+			"remaining_budget": s.v.Remaining(),
+		})
+		return
+	}
+
+	// 4. Reverse Proxy to Upstream
+	targetURL := r.URL
+	targetURL.Scheme = "https"
+	if s.upstream != nil {
+		targetURL.Scheme = s.upstream.Scheme
+		targetURL.Host = s.upstream.Host
+	} else if targetURL.Host == "" {
+		targetURL.Host = targetHost
+	}
+
+	proxy := httputil.NewSingleHostReverseProxy(&url.URL{
+		Scheme: targetURL.Scheme,
+		Host:   targetURL.Host,
+	})
+
+	// Wrap response director to set headers
+	originalDirector := proxy.Director
+	proxy.Director = func(req *http.Request) {
+		originalDirector(req)
+		req.Host = targetURL.Host
+	}
+
+	proxy.ModifyResponse = func(resp *http.Response) error {
+		latency := time.Since(start).Milliseconds()
+		resp.Header.Set("X-Bound-Status", "ALLOWED")
+		resp.Header.Set("X-Bound-Remaining", fmt.Sprintf("%.4f", s.v.Remaining()))
+		resp.Header.Set("X-Bound-Latency-Ms", fmt.Sprintf("%d", latency))
+
+		// Commit spend to vault and ledger
+		_ = s.v.Record(vault.Transaction{
+			AgentID:     agentID,
+			Target:      targetHost,
+			Amount:      decision.Cost,
+			Description: r.Method + " " + r.URL.Path,
+		})
+
+		_ = s.led.Log(ledger.AuditEntry{
+			AgentID:   agentID,
+			Target:    targetHost,
+			Action:    r.Method + " " + r.URL.Path,
+			Amount:    decision.Cost,
+			Allowed:   true,
+			Reason:    "Approved and routed",
+			Remaining: s.v.Remaining(),
+		})
+		return nil
+	}
+
+	proxy.ServeHTTP(w, r)
+}

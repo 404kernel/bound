@@ -1,0 +1,17 @@
+# Binaries
+bound
+bound.exe
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Audit and Vault local testing files
+*.jsonl
+bound_debug.log
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
