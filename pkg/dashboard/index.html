@@ -461,6 +461,152 @@
       font-weight: 500;
       color: var(--text-main);
     }
+
+    /* Hamburger & Settings Drawer */
+    .btn-icon {
+      background: #14171E;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+
+    .btn-icon:hover {
+      background: #1B2028;
+      border-color: #374151;
+    }
+
+    .drawer-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .drawer-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer-panel {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 420px;
+      height: 100vh;
+      background: #0E1117;
+      border-left: 1px solid #222733;
+      box-shadow: -10px 0 30px rgba(0, 0, 0, 0.7);
+      z-index: 101;
+      display: flex;
+      flex-direction: column;
+      transition: right 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .drawer-panel.active {
+      right: 0;
+    }
+
+    .drawer-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid #1E232F;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .drawer-title {
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--text-main);
+    }
+
+    .drawer-close {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .drawer-close:hover {
+      color: var(--text-main);
+    }
+
+    .drawer-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      background: #14171E;
+      border: 1px solid #282E3D;
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: #F3F4F6;
+      font-family: var(--mono);
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .form-input:focus {
+      border-color: #6366F1;
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+
+    .form-hint {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    .section-divider {
+      border-top: 1px solid #1E232F;
+      margin: 20px 0 16px 0;
+      padding-top: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #818CF8;
+    }
+
+    .drawer-footer {
+      padding: 16px 24px;
+      border-top: 1px solid #1E232F;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      background: #0C0E12;
+    }
   </style>
 </head>
 <body>
@@ -478,6 +624,68 @@
       <button class="btn btn-primary" onclick="simulateCall()">Simulate Request</button>
       <button class="btn" onclick="resetVault()">Reset Balance</button>
       <button id="btnKill" class="btn btn-danger" onclick="toggleKillSwitch()">Freeze Agents</button>
+      <button class="btn-icon" onclick="openDrawer()" title="Settings & Alert Channels">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Settings & Keys Drawer -->
+  <div id="drawerOverlay" class="drawer-overlay" onclick="closeDrawer()"></div>
+  <div id="drawerPanel" class="drawer-panel">
+    <div class="drawer-header">
+      <div class="drawer-title">Alert Channels & API Keys</div>
+      <button class="drawer-close" onclick="closeDrawer()">&times;</button>
+    </div>
+    <div class="drawer-body">
+      <div class="section-divider" style="margin-top:0;">Telegram Escrow Bot</div>
+      <div class="form-group">
+        <label>Telegram Bot Token</label>
+        <input type="password" id="inputTgBot" class="form-input" placeholder="7123456789:AAFn4b9..." />
+        <div class="form-hint">Created via @BotFather in Telegram</div>
+      </div>
+      <div class="form-group">
+        <label>Telegram Chat ID</label>
+        <input type="text" id="inputTgChat" class="form-input" placeholder="123456789" />
+        <div class="form-hint">Obtain from @userinfobot or @myidbot</div>
+      </div>
+
+      <div class="section-divider">Discord / Slack Alerts</div>
+      <div class="form-group">
+        <label>Webhook URL</label>
+        <input type="text" id="inputWebhook" class="form-input" placeholder="https://discord.com/api/webhooks/..." />
+        <div class="form-hint">Receives rich embed alerts for pending agent escrows</div>
+      </div>
+
+      <div class="section-divider">API Keys & Upstream Rails</div>
+      <div class="form-group">
+        <label>Default Upstream API</label>
+        <input type="text" id="inputUpstream" class="form-input" placeholder="https://api.openai.com" />
+      </div>
+      <div class="form-group">
+        <label>OpenAI API Key</label>
+        <input type="password" id="keyOpenAI" class="form-input" placeholder="sk-..." />
+      </div>
+      <div class="form-group">
+        <label>Anthropic API Key</label>
+        <input type="password" id="keyAnthropic" class="form-input" placeholder="sk-ant-..." />
+      </div>
+      <div class="form-group">
+        <label>Google Gemini API Key</label>
+        <input type="password" id="keyGemini" class="form-input" placeholder="AIzaSy..." />
+      </div>
+      <div class="form-group">
+        <label>DeepSeek API Key</label>
+        <input type="password" id="keyDeepSeek" class="form-input" placeholder="sk-..." />
+      </div>
+    </div>
+    <div class="drawer-footer">
+      <button class="btn" onclick="closeDrawer()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveConfiguration()">Save Changes</button>
     </div>
   </div>
 
@@ -792,6 +1000,69 @@
     function escapeHtml(str) {
       if (!str) return '';
       return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Settings Drawer Handlers
+    async function openDrawer() {
+      document.getElementById('drawerOverlay').classList.add('active');
+      document.getElementById('drawerPanel').classList.add('active');
+      await loadConfiguration();
+    }
+
+    function closeDrawer() {
+      document.getElementById('drawerOverlay').classList.remove('active');
+      document.getElementById('drawerPanel').classList.remove('active');
+    }
+
+    async function loadConfiguration() {
+      try {
+        const res = await fetch('/bound/api/config');
+        if (!res.ok) return;
+        const cfg = await res.json();
+        if (cfg.telegram_bot) document.getElementById('inputTgBot').value = cfg.telegram_bot;
+        if (cfg.telegram_chat_id) document.getElementById('inputTgChat').value = cfg.telegram_chat_id;
+        if (cfg.webhook_url) document.getElementById('inputWebhook').value = cfg.webhook_url;
+        if (cfg.upstream_api) document.getElementById('inputUpstream').value = cfg.upstream_api;
+        if (cfg.api_keys) {
+          if (cfg.api_keys['openai']) document.getElementById('keyOpenAI').value = cfg.api_keys['openai'];
+          if (cfg.api_keys['anthropic']) document.getElementById('keyAnthropic').value = cfg.api_keys['anthropic'];
+          if (cfg.api_keys['gemini']) document.getElementById('keyGemini').value = cfg.api_keys['gemini'];
+          if (cfg.api_keys['deepseek']) document.getElementById('keyDeepSeek').value = cfg.api_keys['deepseek'];
+        }
+      } catch (e) {
+        console.error("Failed to load config:", e);
+      }
+    }
+
+    async function saveConfiguration() {
+      const payload = {
+        telegram_bot: document.getElementById('inputTgBot').value.trim(),
+        telegram_chat_id: document.getElementById('inputTgChat').value.trim(),
+        webhook_url: document.getElementById('inputWebhook').value.trim(),
+        upstream_api: document.getElementById('inputUpstream').value.trim(),
+        api_keys: {
+          openai: document.getElementById('keyOpenAI').value.trim(),
+          anthropic: document.getElementById('keyAnthropic').value.trim(),
+          gemini: document.getElementById('keyGemini').value.trim(),
+          deepseek: document.getElementById('keyDeepSeek').value.trim(),
+        }
+      };
+
+      try {
+        const res = await fetch('/bound/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          closeDrawer();
+          alert("Configuration saved successfully.");
+        } else {
+          alert("Failed to save configuration.");
+        }
+      } catch (e) {
+        alert("Error saving configuration: " + e.message);
+      }
     }
 
     // Polling

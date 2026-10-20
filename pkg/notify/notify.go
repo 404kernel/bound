@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -40,13 +41,39 @@ func (n *Notifier) SendAlert(req EscrowRequest) error {
 
 	// 1. Generic / Slack / Discord Webhook
 	if n.WebhookURL != "" {
-		payload := map[string]interface{}{
-			"text": fmt.Sprintf("[BOUND ESCROW] Agent '%s' requests approval for $%.2f at %s.\nReason: %s",
-				req.AgentID, req.Amount, req.Target, req.Reason),
-			"agent_id":  req.AgentID,
-			"amount":    req.Amount,
-			"target":    req.Target,
-			"timestamp": req.Timestamp.Format(time.RFC3339),
+		var payload interface{}
+
+		if strings.Contains(n.WebhookURL, "discord.com/api/webhooks") {
+			// Rich Discord Embed with colored status card
+			payload = map[string]interface{}{
+				"content": "⚠️ **[BOUND ESCROW HOLD]** An autonomous agent requires spending approval.",
+				"embeds": []map[string]interface{}{
+					{
+						"title":       "Escrow Review Required",
+						"description": fmt.Sprintf("Agent `%s` requested approval for **$%.2f** at `%s`.\n\n**Reason:** %s", req.AgentID, req.Amount, req.Target, req.Reason),
+						"color":       15158332, // Coral/Amber warning color
+						"fields": []map[string]interface{}{
+							{"name": "Agent ID", "value": req.AgentID, "inline": true},
+							{"name": "Amount", "value": fmt.Sprintf("$%.2f", req.Amount), "inline": true},
+							{"name": "Action / Target", "value": req.Target, "inline": false},
+						},
+						"footer": map[string]string{
+							"text": "Review in Bound Dashboard (http://localhost:8443/dashboard)",
+						},
+						"timestamp": req.Timestamp.Format(time.RFC3339),
+					},
+				},
+			}
+		} else {
+			// Standard Slack / Generic payload
+			payload = map[string]interface{}{
+				"text": fmt.Sprintf("[BOUND ESCROW] Agent '%s' requests approval for $%.2f at %s.\nReason: %s",
+					req.AgentID, req.Amount, req.Target, req.Reason),
+				"agent_id":  req.AgentID,
+				"amount":    req.Amount,
+				"target":    req.Target,
+				"timestamp": req.Timestamp.Format(time.RFC3339),
+			}
 		}
 
 		data, _ := json.Marshal(payload)
@@ -111,4 +138,60 @@ func (n *Notifier) SendAlert(req EscrowRequest) error {
 	}
 
 	return lastErr
+}
+
+// TestTelegram sends a verification ping to confirm bot token and chat ID.
+func (n *Notifier) TestTelegram() error {
+	if n.TelegramBot == "" || n.TelegramChatID == "" {
+		return fmt.Errorf("telegram bot token or chat ID is missing")
+	}
+
+	tgURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", n.TelegramBot)
+	text := "🟢 *[BOUND TEST]* Telegram notifications connected successfully!\n\nYour autonomous agent escrow and spend alerts will be delivered here."
+
+	payload := map[string]string{
+		"chat_id":    n.TelegramChatID,
+		"text":       text,
+		"parse_mode": "Markdown",
+	}
+	data, _ := json.Marshal(payload)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", tgURL, bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+	resp, err := n.client.Do(httpReq)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		var tgErr struct {
+			Description string `json:"description"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&tgErr)
+		return fmt.Errorf("telegram error: %s (status %d)", tgErr.Description, resp.StatusCode)
+	}
+
+	return nil
+}
+
+// TestWebhook sends a test notification to verify a Slack or Discord webhook.
+func (n *Notifier) TestWebhook() error {
+	if n.WebhookURL == "" {
+		return fmt.Errorf("webhook URL is missing")
+	}
+
+	return n.SendAlert(EscrowRequest{
+		ID:        "test_ping",
+		AgentID:   "bound-system-test",
+		Target:    "https://api.openai.com/v1",
+		Amount:    0.01,
+		Reason:    "Webhook verification test from Bound setup",
+		Timestamp: time.Now(),
+	})
 }

@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"bufio"
+	"github.com/404kernel/bound/pkg/config"
 	"github.com/404kernel/bound/pkg/governor"
 	"github.com/404kernel/bound/pkg/ledger"
 	"github.com/404kernel/bound/pkg/notify"
@@ -42,6 +44,8 @@ func main() {
 		runProxy(os.Args[2:])
 	case "run":
 		runWrappedAgent(os.Args[2:])
+	case "setup":
+		runSetup(os.Args[2:])
 	case "status":
 		runStatus()
 	case "audit":
@@ -111,6 +115,20 @@ func runProxy(args []string) {
 	v := vault.NewVault(policy, vaultPath)
 	gov := governor.NewGovernor(governor.DefaultConfig(), v)
 	led := ledger.NewLedger(auditPath)
+
+	cfg := config.LoadConfig()
+	if *webhook == "" {
+		*webhook = cfg.WebhookURL
+	}
+	if *tgBot == "" {
+		*tgBot = cfg.TelegramBot
+	}
+	if *tgChat == "" {
+		*tgChat = cfg.TelegramChatID
+	}
+	if *upstream == "https://api.openai.com" && cfg.UpstreamAPI != "" {
+		*upstream = cfg.UpstreamAPI
+	}
 
 	var notif *notify.Notifier
 	if *webhook != "" || (*tgBot != "" && *tgChat != "") {
@@ -260,4 +278,86 @@ func runReset() {
 		return
 	}
 	fmt.Println("✨ [BOUND] Vault balances, transaction records, and circuit breakers reset successfully.")
+}
+
+func runSetup(args []string) {
+	fmt.Print(Banner)
+	fmt.Println("🛠️  [BOUND SETUP WIZARD] Configure Alert Channels & Integration Keys")
+	fmt.Println("--------------------------------------------------------------------")
+
+	cfg := config.LoadConfig()
+	reader := bufio.NewReader(os.Stdin)
+
+	fmt.Printf("\n[1/3] Telegram Bot Setup\n")
+	fmt.Printf("Current Bot Token: %s\n", maskSecret(cfg.TelegramBot))
+	fmt.Print("Enter Telegram Bot Token (or press Enter to keep): ")
+	botToken, _ := reader.ReadString('\n')
+	botToken = strings.TrimSpace(botToken)
+	if botToken != "" {
+		cfg.TelegramBot = botToken
+	}
+
+	fmt.Printf("Current Chat ID: %s\n", cfg.TelegramChatID)
+	fmt.Print("Enter Telegram Chat ID (or press Enter to keep): ")
+	chatID, _ := reader.ReadString('\n')
+	chatID = strings.TrimSpace(chatID)
+	if chatID != "" {
+		cfg.TelegramChatID = chatID
+	}
+
+	if cfg.TelegramBot != "" && cfg.TelegramChatID != "" {
+		fmt.Print("Testing Telegram connection... ")
+		n := notify.NewNotifier("", cfg.TelegramBot, cfg.TelegramChatID)
+		if err := n.TestTelegram(); err != nil {
+			fmt.Printf("❌ Failed: %v\n", err)
+		} else {
+			fmt.Println("✅ Success! Check Telegram for the test ping.")
+		}
+	}
+
+	fmt.Printf("\n[2/3] Discord / Slack Webhook Setup\n")
+	fmt.Printf("Current Webhook: %s\n", maskSecret(cfg.WebhookURL))
+	fmt.Print("Enter Webhook URL (Discord/Slack, or press Enter to keep): ")
+	webhookURL, _ := reader.ReadString('\n')
+	webhookURL = strings.TrimSpace(webhookURL)
+	if webhookURL != "" {
+		cfg.WebhookURL = webhookURL
+	}
+
+	if cfg.WebhookURL != "" {
+		fmt.Print("Testing Webhook dispatch... ")
+		n := notify.NewNotifier(cfg.WebhookURL, "", "")
+		if err := n.TestWebhook(); err != nil {
+			fmt.Printf("❌ Failed: %v\n", err)
+		} else {
+			fmt.Println("✅ Success! Check your Discord / Slack channel.")
+		}
+	}
+
+	fmt.Printf("\n[3/3] Default Upstream AI Endpoint\n")
+	fmt.Printf("Current Upstream: %s\n", cfg.UpstreamAPI)
+	fmt.Print("Enter Upstream API (default: https://api.openai.com, or Enter to keep): ")
+	upstream, _ := reader.ReadString('\n')
+	upstream = strings.TrimSpace(upstream)
+	if upstream != "" {
+		cfg.UpstreamAPI = upstream
+	}
+
+	if err := config.SaveConfig(cfg); err != nil {
+		fmt.Printf("❌ Failed to save config: %v\n", err)
+		return
+	}
+
+	fmt.Printf("\n🎉 Configuration saved to %s\n", config.ConfigPath())
+	fmt.Println("Run 'bound proxy' now to govern agent traffic with your configured channels.")
+}
+
+func maskSecret(s string) string {
+	if s == "" {
+		return "(not configured)"
+	}
+	if len(s) <= 8 {
+		return "********"
+	}
+	return s[:4] + "..." + s[len(s)-4:]
 }

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/404kernel/bound/pkg/config"
 	"github.com/404kernel/bound/pkg/governor"
 	"github.com/404kernel/bound/pkg/ledger"
 	"github.com/404kernel/bound/pkg/vault"
@@ -35,6 +36,7 @@ func (d *Dashboard) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/bound/api/trip", d.handleTrip)
 	mux.HandleFunc("/bound/api/reset", d.handleReset)
 	mux.HandleFunc("/bound/api/simulate", d.handleSimulate)
+	mux.HandleFunc("/bound/api/config", d.handleConfig)
 }
 
 func (d *Dashboard) handleIndex(w http.ResponseWriter, r *http.Request) {
@@ -160,4 +162,57 @@ func (d *Dashboard) handleSimulate(w http.ResponseWriter, r *http.Request) {
 		"reason":           decision.Reason,
 		"remaining_budget": d.v.Remaining(),
 	})
+}
+
+func (d *Dashboard) handleConfig(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method == http.MethodGet {
+		cfg := config.LoadConfig()
+		_ = json.NewEncoder(w).Encode(cfg)
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		var incoming config.Config
+		if err := json.NewDecoder(r.Body).Decode(&incoming); err != nil {
+			http.Error(w, "Bad request", http.StatusBadRequest)
+			return
+		}
+
+		cfg := config.LoadConfig()
+		if incoming.TelegramBot != "" {
+			cfg.TelegramBot = incoming.TelegramBot
+		}
+		if incoming.TelegramChatID != "" {
+			cfg.TelegramChatID = incoming.TelegramChatID
+		}
+		if incoming.WebhookURL != "" {
+			cfg.WebhookURL = incoming.WebhookURL
+		}
+		if incoming.UpstreamAPI != "" {
+			cfg.UpstreamAPI = incoming.UpstreamAPI
+		}
+		if incoming.APIKeys != nil {
+			for k, v := range incoming.APIKeys {
+				if v != "" {
+					cfg.APIKeys[k] = v
+				}
+			}
+		}
+
+		if err := config.SaveConfig(cfg); err != nil {
+			http.Error(w, fmt.Sprintf("Failed to save config: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"status":  "ok",
+			"message": "Configuration updated successfully",
+			"config":  cfg,
+		})
+		return
+	}
+
+	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 }
