@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest]
         go: ['1.23']
     env:
       NO_PROXY: "127.0.0.1,localhost"
@@ -32,3 +32,7 @@ jobs:
 
       - name: Build Binary
         run: go build -v ./cmd/bound
+
+      - name: Verify macOS Darwin Build
+        if: matrix.os == 'ubuntu-latest'
+        run: GOOS=darwin GOARCH=arm64 go build -v ./cmd/bound
