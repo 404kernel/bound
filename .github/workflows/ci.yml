@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        go: ['1.22', '1.23']
+        go: ['1.23']
     env:
       NO_PROXY: "127.0.0.1,localhost"
 
