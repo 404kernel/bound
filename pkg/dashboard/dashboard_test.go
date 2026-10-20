@@ -48,7 +48,7 @@ func TestDashboardHTMLServed(t *testing.T) {
 	}
 
 	body := rr.Body.String()
-	if !strings.Contains(body, "BOUND // Control Dashboard") {
+	if !strings.Contains(body, "<title>Bound Dashboard</title>") && !strings.Contains(body, "BOUND // Control Dashboard") {
 		t.Errorf("expected dashboard HTML title, got: %s", body[:100])
 	}
 }

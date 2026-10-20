@@ -19,50 +19,77 @@ type EscrowRequest struct {
 }
 
 type Notifier struct {
-	WebhookURL string
-	client     *http.Client
+	WebhookURL     string
+	TelegramBot    string
+	TelegramChatID string
+	client         *http.Client
 }
 
-func NewNotifier(webhookURL string) *Notifier {
+func NewNotifier(webhookURL, telegramBot, telegramChatID string) *Notifier {
 	return &Notifier{
-		WebhookURL: webhookURL,
-		client:     &http.Client{Timeout: 5 * time.Second},
+		WebhookURL:     webhookURL,
+		TelegramBot:    telegramBot,
+		TelegramChatID: telegramChatID,
+		client:         &http.Client{Timeout: 5 * time.Second},
 	}
 }
 
-// SendAlert pushes an immediate notification to the configured webhook channel.
+// SendAlert pushes an immediate notification to the configured webhook channel and Telegram.
 func (n *Notifier) SendAlert(req EscrowRequest) error {
-	if n.WebhookURL == "" {
-		return nil
+	var lastErr error
+
+	// 1. Generic / Slack / Discord Webhook
+	if n.WebhookURL != "" {
+		payload := map[string]interface{}{
+			"text": fmt.Sprintf("[BOUND ESCROW] Agent '%s' requests approval for $%.2f at %s.\nReason: %s",
+				req.AgentID, req.Amount, req.Target, req.Reason),
+			"agent_id":  req.AgentID,
+			"amount":    req.Amount,
+			"target":    req.Target,
+			"timestamp": req.Timestamp.Format(time.RFC3339),
+		}
+
+		data, _ := json.Marshal(payload)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		httpReq, err := http.NewRequestWithContext(ctx, "POST", n.WebhookURL, bytes.NewReader(data))
+		if err == nil {
+			httpReq.Header.Set("Content-Type", "application/json")
+			resp, err := n.client.Do(httpReq)
+			if err == nil {
+				_ = resp.Body.Close()
+			} else {
+				lastErr = err
+			}
+		}
+		cancel()
 	}
 
-	payload := map[string]interface{}{
-		"text": fmt.Sprintf("⚠️ [BOUND ALERT] Agent `%s` requests approval for **$%.2f** at `%s`.\nReason: %s",
-			req.AgentID, req.Amount, req.Target, req.Reason),
-		"agent_id":  req.AgentID,
-		"amount":    req.Amount,
-		"target":    req.Target,
-		"timestamp": req.Timestamp.Format(time.RFC3339),
+	// 2. Telegram Bot API Direct Alert
+	if n.TelegramBot != "" && n.TelegramChatID != "" {
+		tgURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", n.TelegramBot)
+		text := fmt.Sprintf("🔒 *BOUND ESCROW HOLD*\n\n*Agent:* `%s`\n*Target:* `%s`\n*Amount:* `$%.2f`\n*Reason:* %s\n\n_Review in Bound Dashboard at http://localhost:8443/dashboard_",
+			req.AgentID, req.Target, req.Amount, req.Reason)
+
+		payload := map[string]string{
+			"chat_id":    n.TelegramChatID,
+			"text":       text,
+			"parse_mode": "Markdown",
+		}
+		data, _ := json.Marshal(payload)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		httpReq, err := http.NewRequestWithContext(ctx, "POST", tgURL, bytes.NewReader(data))
+		if err == nil {
+			httpReq.Header.Set("Content-Type", "application/json")
+			resp, err := n.client.Do(httpReq)
+			if err == nil {
+				_ = resp.Body.Close()
+			} else {
+				lastErr = err
+			}
+		}
 	}
 
-	data, err := json.Marshal(payload)
-	if err != nil {
-		return err
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", n.WebhookURL, bytes.NewReader(data))
-	if err != nil {
-		return err
-	}
-	httpReq.Header.Set("Content-Type", "application/json")
-
-	resp, err := n.client.Do(httpReq)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	return nil
+	return lastErr
 }

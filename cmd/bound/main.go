@@ -14,6 +14,7 @@ import (
 
 	"github.com/404kernel/bound/pkg/governor"
 	"github.com/404kernel/bound/pkg/ledger"
+	"github.com/404kernel/bound/pkg/notify"
 	"github.com/404kernel/bound/pkg/proxy"
 	"github.com/404kernel/bound/pkg/vault"
 )
@@ -91,6 +92,9 @@ func runProxy(args []string) {
 	hourly := fs.Float64("hourly", 5.00, "Max hourly spend velocity limit in USD")
 	daily := fs.Float64("daily", 10.00, "Max 24h spend limit in USD")
 	upstream := fs.String("upstream", "https://api.openai.com", "Default upstream API endpoint")
+	webhook := fs.String("webhook", "", "Optional webhook URL for escrow hold alerts (Slack / Discord)")
+	tgBot := fs.String("telegram-bot", "", "Optional Telegram Bot Token for escrow push notifications")
+	tgChat := fs.String("telegram-chat", "", "Optional Telegram Chat ID for escrow push notifications")
 	_ = fs.Parse(args)
 
 	fmt.Print(Banner)
@@ -108,7 +112,12 @@ func runProxy(args []string) {
 	gov := governor.NewGovernor(governor.DefaultConfig(), v)
 	led := ledger.NewLedger(auditPath)
 
-	srv, err := proxy.NewServer(*port, gov, v, led, *upstream)
+	var notif *notify.Notifier
+	if *webhook != "" || (*tgBot != "" && *tgChat != "") {
+		notif = notify.NewNotifier(*webhook, *tgBot, *tgChat)
+	}
+
+	srv, err := proxy.NewServerWithNotifier(*port, gov, v, led, notif, *upstream)
 	if err != nil {
 		fmt.Printf("Failed to initialize Bound proxy: %v\n", err)
 		os.Exit(1)

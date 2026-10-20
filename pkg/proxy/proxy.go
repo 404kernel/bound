@@ -16,6 +16,7 @@ import (
 	"github.com/404kernel/bound/pkg/dashboard"
 	"github.com/404kernel/bound/pkg/governor"
 	"github.com/404kernel/bound/pkg/ledger"
+	"github.com/404kernel/bound/pkg/notify"
 	"github.com/404kernel/bound/pkg/vault"
 )
 
@@ -24,11 +25,16 @@ type Server struct {
 	gov      *governor.Governor
 	v        *vault.Vault
 	led      *ledger.Ledger
+	notif    *notify.Notifier
 	server   *http.Server
 	upstream *url.URL
 }
 
 func NewServer(addr string, gov *governor.Governor, v *vault.Vault, led *ledger.Ledger, defaultUpstream string) (*Server, error) {
+	return NewServerWithNotifier(addr, gov, v, led, nil, defaultUpstream)
+}
+
+func NewServerWithNotifier(addr string, gov *governor.Governor, v *vault.Vault, led *ledger.Ledger, notif *notify.Notifier, defaultUpstream string) (*Server, error) {
 	if addr == "" {
 		addr = ":8443"
 	}
@@ -47,12 +53,14 @@ func NewServer(addr string, gov *governor.Governor, v *vault.Vault, led *ledger.
 		gov:      gov,
 		v:        v,
 		led:      led,
+		notif:    notif,
 		upstream: upURL,
 	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/bound/status", s.handleStatus)
 	mux.HandleFunc("/bound/reset", s.handleReset)
+	mux.HandleFunc("/bound/check", s.handleCheck)
 
 	// Mount embedded real-time web dashboard
 	dash := dashboard.NewDashboard(v, gov, led)
@@ -90,6 +98,92 @@ func (s *Server) handleReset(w http.ResponseWriter, r *http.Request) {
 	s.gov.ResetBreaker()
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte(`{"status": "ok", "message": "Bound vault and circuit breaker reset successfully."}`))
+}
+
+type CheckRequest struct {
+	AgentID string  `json:"agent_id"`
+	Target  string  `json:"target"`
+	Amount  float64 `json:"amount"`
+	Action  string  `json:"action"`
+	Commit  bool    `json:"commit"`
+}
+
+type CheckResponse struct {
+	Allowed         bool    `json:"allowed"`
+	RequiresConfirm bool    `json:"requires_confirm"`
+	Reason          string  `json:"reason"`
+	RemainingBudget float64 `json:"remaining_budget"`
+	CurrentTotal    float64 `json:"current_total"`
+}
+
+func (s *Server) handleCheck(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req CheckRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		return
+	}
+
+	if req.AgentID == "" {
+		req.AgentID = "default-agent"
+	}
+	if req.Target == "" {
+		req.Target = "general"
+	}
+
+	decision := s.gov.Evaluate(req.AgentID, req.Target, fmt.Sprintf("chk_%d", time.Now().UnixNano()), req.Amount)
+
+	// Trigger Escrow Alert if threshold exceeded
+	if decision.RequiresConfirm && s.notif != nil {
+		go func() {
+			_ = s.notif.SendAlert(notify.EscrowRequest{
+				ID:        fmt.Sprintf("escrow_%d", time.Now().UnixNano()),
+				AgentID:   req.AgentID,
+				Target:    req.Target,
+				Amount:    req.Amount,
+				Reason:    decision.Reason,
+				Timestamp: time.Now(),
+			})
+		}()
+	}
+
+	if decision.Allowed && req.Commit {
+		_ = s.v.Record(vault.Transaction{
+			AgentID:     req.AgentID,
+			Target:      req.Target,
+			Amount:      req.Amount,
+			Description: req.Action,
+		})
+	}
+
+	_ = s.led.Log(ledger.AuditEntry{
+		AgentID:   req.AgentID,
+		Target:    req.Target,
+		Action:    req.Action,
+		Amount:    req.Amount,
+		Allowed:   decision.Allowed,
+		Reason:    decision.Reason,
+		Remaining: s.v.Remaining(),
+	})
+
+	w.Header().Set("Content-Type", "application/json")
+	if !decision.Allowed {
+		w.WriteHeader(http.StatusPaymentRequired)
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
+
+	_ = json.NewEncoder(w).Encode(CheckResponse{
+		Allowed:         decision.Allowed,
+		RequiresConfirm: decision.RequiresConfirm,
+		Reason:          decision.Reason,
+		RemainingBudget: s.v.Remaining(),
+		CurrentTotal:    s.v.TotalSpent,
+	})
 }
 
 func (s *Server) handleProxy(w http.ResponseWriter, r *http.Request) {
