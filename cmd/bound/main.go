@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"bufio"
+	"runtime"
 	"github.com/404kernel/bound/pkg/config"
 	"github.com/404kernel/bound/pkg/governor"
 	"github.com/404kernel/bound/pkg/ledger"
@@ -37,9 +38,23 @@ const Banner = `
   The Programmable Spend Vault & Financial Rails for Autonomous AI Agents
 `
 
+func openBrowser(target string) {
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "windows":
+		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", target)
+	case "darwin":
+		cmd = exec.Command("open", target)
+	default:
+		cmd = exec.Command("xdg-open", target)
+	}
+	_ = cmd.Start()
+}
+
 func main() {
 	if len(os.Args) < 2 {
-		printHelp()
+		// Auto-launch proxy daemon & open web dashboard when double-clicked or invoked without subcommands
+		runProxyInternal(nil, true)
 		return
 	}
 
@@ -96,6 +111,10 @@ func getPaths() (string, string) {
 }
 
 func runProxy(args []string) {
+	runProxyInternal(args, false)
+}
+
+func runProxyInternal(args []string, autoLaunchBrowser bool) {
 	fs := flag.NewFlagSet("proxy", flag.ExitOnError)
 	port := fs.String("port", ":8443", "Proxy listen address")
 	budget := fs.Float64("budget", 25.00, "Max lifetime budget in USD")
@@ -105,6 +124,7 @@ func runProxy(args []string) {
 	webhook := fs.String("webhook", "", "Optional webhook URL for escrow hold alerts (Slack / Discord)")
 	tgBot := fs.String("telegram-bot", "", "Optional Telegram Bot Token for escrow push notifications")
 	tgChat := fs.String("telegram-chat", "", "Optional Telegram Chat ID for escrow push notifications")
+	openDash := fs.Bool("open", autoLaunchBrowser, "Open dashboard automatically in default browser")
 	_ = fs.Parse(args)
 
 	fmt.Print(Banner)
@@ -147,11 +167,22 @@ func runProxy(args []string) {
 		os.Exit(1)
 	}
 
+	dashURL := fmt.Sprintf("http://localhost%s/dashboard", *port)
+	// Clickable hyperlink in terminals supporting OSC 8 (Windows Terminal, VS Code, iTerm, Mintty, etc.)
+	clickableURL := fmt.Sprintf("\x1b]8;;%s\x1b\\%s\x1b]8;;\x1b\\", dashURL, dashURL)
+
 	fmt.Printf("[BOUND // ACTIVE] Governance daemon listening on %s\n", *port)
-	fmt.Printf("Dashboard       : http://localhost%s/dashboard\n", *port)
+	fmt.Printf("Dashboard       : %s (Click or Ctrl+Click)\n", clickableURL)
 	fmt.Printf("Budget Caps     : Total: $%.2f | Daily: $%.2f | Hourly: $%.2f\n", policy.MaxTotal, policy.MaxDaily, policy.MaxHourly)
 	fmt.Printf("Upstream Rail   : %s\n", *upstream)
 	fmt.Println("Press Ctrl+C to shut down.")
+
+	if *openDash {
+		go func() {
+			time.Sleep(300 * time.Millisecond)
+			openBrowser(dashURL)
+		}()
+	}
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
