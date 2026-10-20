@@ -304,6 +304,9 @@ func (s *Server) handleProxy(w http.ResponseWriter, r *http.Request) {
 		Scheme: targetURL.Scheme,
 		Host:   targetURL.Host,
 	})
+	proxy.Transport = &http.Transport{
+		Proxy: nil,
+	}
 
 	// Wrap response director to set headers
 	originalDirector := proxy.Director
