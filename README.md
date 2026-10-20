@@ -25,19 +25,10 @@
   <a href="#sdk-integration">SDK Integration</a>
 </p>
 
-```text
-╭──────────────────────────────────────────────────────────╮
-│ BOUND GOVERNANCE TELEMETRY & VAULT STATUS                │
-├──────────────────────────────────────────────────────────┤
-│  Total Spent       : $1.4230                             │
-│  Remaining Budget  : $23.5770                            │
-│  Max Lifetime Cap  : $25.00                              │
-│  Daily Limit       : $10.00                              │
-│  Hourly Velocity   : $5.00                               │
-│  Total Transactions: 14                                  │
-│  Circuit Breaker   : ACTIVE                              │
-╰──────────────────────────────────────────────────────────╯
-```
+<p align="center">
+  <img src="assets/dashboard.png" width="100%" alt="Bound Real-Time Spend Governance Dashboard" />
+</p>
+
 
 ---
 
@@ -132,6 +123,10 @@ bound run --budget 5.00 --hourly 2.00 -- python my_agent.py
 ```bash
 bound proxy --port :8443 --budget 50.00 --hourly 10.00
 ```
+
+<p align="center">
+  <img src="assets/terminal.png" width="100%" alt="Bound High-Tech Terminal Boot Sequence" />
+</p>
 
 #### Option C: Live Multi-Agent Simulation
 Test velocity limits, runaway loop circuit breakers, and Telegram escrows in real-time:
