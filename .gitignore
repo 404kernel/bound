@@ -20,3 +20,6 @@ Thumbs.db
 dist/
 build/
 *.egg-info/
+
+# Private documents & Whitepapers
+*.pdf

@@ -75,6 +75,43 @@ Autonomous AI agents (Claude Code, AutoGPT, CrewAI, LangChain, custom loops) are
 
 ---
 
+## Real-World Proof: Autonomous Circuit Breaker in Action
+
+When autonomous agents malfunction or get stuck in recursive planning loops, they burn tokens and API quotas at compounding velocity. Bound actively monitors request rates and token burn in real time.
+
+<p align="center">
+  <img src="assets/circuit-breaker.png" width="100%" alt="Bound Autonomous Circuit Breaker Engaged" />
+</p>
+
+### What Happens During a Runaway Loop:
+1. **Normal Telemetry**: Agent requests pass through with sub-2ms overhead and ledger tracking (`ALLOWED` @ `$0.0023` avg).
+2. **Trip Wire Triggered**: When a runaway agent exceeds the configured velocity ceiling (e.g. `> 60 calls/minute`), Bound's in-memory circuit breaker trips instantly.
+3. **Hard Quarantine**: The dashboard alerts `Circuit Breaker Engaged: Exceeded 60 calls per minute limit`, switches proxy status to red lockdown, and severs upstream network connection.
+4. **Zero-Spend Interception**: Every subsequent loop iteration is halted with `BLOCKED` status and `$0.0000` charged. The remaining vault balance ($24.81) stays completely protected.
+
+<p align="center">
+  <img src="assets/interception-blocked.png" width="100%" alt="Bound Real-Time Interception Log Showing Blocked Runaways" />
+</p>
+
+### The Agent Runtime Perspective: `HTTP 402 Payment Required`
+Instead of allowing silent runaway charges or hanging the process, Bound serves standard RFC 7231 `402 Payment Required` responses directly to the agent's HTTP client:
+
+<p align="center">
+  <img src="assets/terminal-rejection.png" width="100%" alt="Bound Terminal Response: 402 Payment Required Rejected" />
+</p>
+
+Agents cleanly receive:
+```json
+{
+  "error": "bound_governor_rejected",
+  "reason": "spend cap or velocity limit exceeded",
+  "circuit_breaker": "tripped",
+  "action": "terminate_or_request_escrow"
+}
+```
+
+---
+
 ## Quick Start
 
 ### 1. One-Line Instant Installation
